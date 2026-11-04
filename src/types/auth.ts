@@ -19,9 +19,13 @@ export interface RegisterData {
   password: string;
 }
 
-export interface AuthResponse {
-  accessToken: string;
+export interface TokenResponse {
+  accessToken?: string;
+  token?: string;
   refreshToken?: string;
+}
+
+export interface AuthResponse extends TokenResponse {
   user: User;
 }
 

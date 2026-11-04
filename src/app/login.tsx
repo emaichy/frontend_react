@@ -27,7 +27,7 @@ export default function LoginScreen() {
       return;
     }
 
-    const success = await login({ email, password });
+    const success = await login(email, password);
     
     if (success) {
       router.replace('/(tabs)');

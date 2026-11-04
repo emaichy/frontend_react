@@ -1,122 +1,221 @@
-import { useState, useEffect, useCallback } from 'react';
-import { User, LoginCredentials, RegisterData } from '../types/auth';
-import { ApiError, ErrorType } from '../types/errors';
+/**
+ * Hook personalizado para manejo de autenticación segura
+ * Previene actualizaciones en componentes desmontados (isMounted pattern)
+ */
+
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { useRouter } from 'expo-router';
+import { useDispatch } from 'react-redux';
 import { authApi } from '../api/auth.api';
 import { storage } from '../utils/storage';
+import { saveStorage, removeStorage } from '../utils/authStorage';
+import { setToken, setUser, logout as clearAuthState } from '../store/store';
+import { handleApiError } from '../utils/errorHandler';
+import { ApiError, ErrorType } from '../types/errors';
+import { User } from '../types/user';
+import { RegisterData } from '../types/auth';
 
-interface UseAuthReturn {
+interface UseAuthState {
   user: User | null;
   loading: boolean;
   error: ApiError | null;
   isAuthenticated: boolean;
-  login: (credentials: LoginCredentials) => Promise<boolean>;
+}
+
+interface UseAuthReturn extends UseAuthState {
+  login: (email: string, password: string) => Promise<boolean>;
   register: (data: RegisterData) => Promise<boolean>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
   clearError: () => void;
 }
 
-export const useAuth = (): UseAuthReturn => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<ApiError | null>(null);
+export function useAuth(): UseAuthReturn {
+  const router = useRouter();
+  const dispatch = useDispatch();
+  const isMounted = useRef(true);
 
-  const clearError = () => setError(null);
+  const [state, setState] = useState<UseAuthState>({
+    user: null,
+    loading: false,
+    error: null,
+    isAuthenticated: false,
+  });
 
+  /**
+   * Verifica si hay una sesión activa al cargar el hook
+   */
   const checkAuth = useCallback(async () => {
     try {
-      setLoading(true);
       const token = await storage.getToken();
-      
-      if (token) {
-        const profile = await authApi.getProfile();
-        setUser(profile);
-      } else {
-        setUser(null);
+      if (!token) {
+        if (isMounted.current) {
+          setState((prev) => ({ ...prev, isAuthenticated: false }));
+        }
+        return;
       }
-    } catch (err) {
-      console.error('Error verificando auth:', err);
-      await storage.clearAll();
-      setUser(null);
-    } finally {
-      setLoading(false);
+
+      if (isMounted.current) {
+        setState((prev) => ({ ...prev, loading: true }));
+      }
+
+      const user = await authApi.getCurrentUser();
+      dispatch(setUser(user));
+
+      if (isMounted.current) {
+        setState({
+          user,
+          loading: false,
+          error: null,
+          isAuthenticated: true,
+        });
+      }
+    } catch {
+      if (isMounted.current) {
+        setState({
+          user: null,
+          loading: false,
+          error: null,
+          isAuthenticated: false,
+        });
+      }
+    }
+  }, [dispatch]);
+
+  /**
+   * Inicia sesión con email y password
+   */
+  const login = useCallback(async (email: string, password: string): Promise<boolean> => {
+    if (isMounted.current) {
+      setState((prev) => ({ ...prev, loading: true, error: null }));
+    }
+
+    try {
+      const response = await authApi.login({ email, password });
+
+      const accessToken = response.accessToken ?? response.token;
+      if (!accessToken) {
+        throw new ApiError(ErrorType.UNKNOWN, 'La API no devolvió un token de acceso.');
+      }
+      await storage.saveToken(accessToken);
+      if (response.refreshToken) {
+        await storage.saveRefreshToken(response.refreshToken);
+      } else {
+        await storage.removeRefreshToken();
+      }
+      await saveStorage('user_token', accessToken);
+      await saveStorage('user_info', JSON.stringify(response.user));
+      dispatch(setToken(accessToken));
+      dispatch(setUser(response.user));
+
+      if (isMounted.current) {
+        setState({
+          user: response.user,
+          loading: false,
+          error: null,
+          isAuthenticated: true,
+        });
+      }
+
+      return true;
+    } catch (error) {
+      const apiError = handleApiError(error);
+      if (isMounted.current) {
+        setState((prev) => ({
+          ...prev,
+          loading: false,
+          error: apiError,
+          isAuthenticated: false,
+        }));
+      }
+      return false;
+    }
+  }, [dispatch]);
+
+  /**
+   * Registra un nuevo usuario e inicia sesión
+   */
+  const register = useCallback(async (data: RegisterData): Promise<boolean> => {
+    if (isMounted.current) {
+      setState((prev) => ({ ...prev, loading: true, error: null }));
+    }
+
+    try {
+      await authApi.register(data);
+      return await login(data.email, data.password);
+    } catch (error) {
+      const apiError = handleApiError(error);
+      if (isMounted.current) {
+        setState((prev) => ({
+          ...prev,
+          loading: false,
+          error: apiError,
+        }));
+      }
+      return false;
+    }
+  }, [login]);
+
+  /**
+   * Cierra sesión y limpia tokens
+   */
+  const logout = useCallback(async () => {
+    const accessToken = await storage.getToken();
+    await storage.clearAll();
+    try {
+      await Promise.all([
+        removeStorage('user_token'),
+        removeStorage('user_info'),
+      ]);
+    } catch (error) {
+      console.error('Error limpiando la sesión local:', error);
+    }
+
+    dispatch(clearAuthState());
+    if (isMounted.current) {
+      setState({
+        user: null,
+        loading: false,
+        error: null,
+        isAuthenticated: false,
+      });
+    }
+    router.replace('/login');
+
+    if (accessToken) {
+      void authApi.logout(accessToken).catch((error: unknown) => {
+        console.warn('No se pudo invalidar la sesión en el servidor:', error);
+      });
+    }
+  }, [dispatch, router]);
+
+  /**
+   * Limpia el error del estado
+   */
+  const clearError = useCallback(() => {
+    if (isMounted.current) {
+      setState((prev) => ({ ...prev, error: null }));
     }
   }, []);
 
+  /**
+   * Mantiene el flag de montaje sincronizado con el ciclo de vida de React
+   */
   useEffect(() => {
-    checkAuth();
+    isMounted.current = true;
+    void Promise.resolve().then(checkAuth);
+
+    return () => {
+      isMounted.current = false;
+    };
   }, [checkAuth]);
 
-  const login = useCallback(async (credentials: LoginCredentials): Promise<boolean> => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const response = await authApi.login(credentials);
-      
-      await storage.saveToken(response.accessToken);
-      if (response.refreshToken) {
-        await storage.saveRefreshToken(response.refreshToken);
-      }
-      
-      setUser(response.user);
-      return true;
-    } catch (err) {
-      const apiError = err instanceof ApiError 
-        ? err 
-        : new ApiError(ErrorType.UNKNOWN, 'Error en login');
-      setError(apiError);
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const register = useCallback(async (data: RegisterData): Promise<boolean> => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const response = await authApi.register(data);
-      
-      await storage.saveToken(response.accessToken);
-      if (response.refreshToken) {
-        await storage.saveRefreshToken(response.refreshToken);
-      }
-      
-      setUser(response.user);
-      return true;
-    } catch (err) {
-      const apiError = err instanceof ApiError 
-        ? err 
-        : new ApiError(ErrorType.UNKNOWN, 'Error en registro');
-      setError(apiError);
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const logout = useCallback(async () => {
-    try {
-      await authApi.logout();
-    } catch (error) {
-      console.log('Error en logout:', error);
-    } finally {
-      await storage.clearAll();
-      setUser(null);
-    }
-  }, []);
-
   return {
-    user,
-    loading,
-    error,
-    isAuthenticated: !!user,
+    ...state,
     login,
     register,
     logout,
     checkAuth,
     clearError,
   };
-};
+}

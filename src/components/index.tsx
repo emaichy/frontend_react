@@ -1,2 +1,3 @@
+export { default as StudentCard } from './StudentCard';
 export { ErrorMessage } from './ErrorMessage';
-export { Loading } from './Loading';
+export { default as Loading } from './Loading';

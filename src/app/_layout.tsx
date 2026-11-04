@@ -1,10 +1,14 @@
-import React, { useEffect, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
-import { Provider, useDispatch } from "react-redux";
 import { Stack } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import React, { useEffect, useState } from "react";
+import { View, ActivityIndicator } from "react-native";
+import { Provider, useDispatch } from "react-redux";
 
-import { store, setUser, setToken } from "../store/store"; // Ajusta la ruta a tu store
-import { getStorage } from "../utils/authStorage"; // Ajusta la ruta a tu utils
+import { setToken, setUser, store } from "../store/store";
+import { getStorage } from "../utils/authStorage";
+
+// Previene que la pantalla de carga nativa se oculte automáticamente
+SplashScreen.preventAutoHideAsync();
 
 function AuthInitializer({ children }: { children: React.ReactNode }) {
     const dispatch = useDispatch();
@@ -24,6 +28,7 @@ function AuthInitializer({ children }: { children: React.ReactNode }) {
                 console.error("Error al restaurar sesión:", error);
             } finally {
                 setIsRestoring(false);
+                await SplashScreen.hideAsync();
             }
         };
 
@@ -46,27 +51,24 @@ export default function RootLayout() {
         <Provider store={store}>
             <AuthInitializer>
                 <Stack>
-
                     <Stack.Screen
                         name="index"
                         options={{ headerShown: false }}
                     />
-
                     <Stack.Screen
-                        name="home"
+                        name="(tabs)"
                         options={{ headerShown: false }}
                     />
-
                     <Stack.Screen
-                        name="profile"
-                        options={{ headerShown: false }}
+                        name="student/[id]"
+                        options={{
+                            headerShown: true,
+                            title: "Detalle de Estudiante",
+                            headerStyle: { backgroundColor: "#FFFFFF" },
+                            headerTitleStyle: { fontWeight: "600" },
+                            headerTintColor: "#111827",
+                        }}
                     />
-
-                    <Stack.Screen
-                        name="settings"
-                        options={{ headerShown: false }}
-                    />
-
                 </Stack>
             </AuthInitializer>
         </Provider>

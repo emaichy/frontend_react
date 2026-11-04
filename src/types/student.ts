@@ -5,7 +5,15 @@ export interface Student {
   matricula: string;
   email: string;
   createdAt?: string;
+  updatedAt?: string;
+  created_at?: string;
+  updated_at?: string;
 }
+
+export type StudentInput = Omit<
+  Student,
+  'id' | 'createdAt' | 'updatedAt' | 'created_at' | 'updated_at'
+> & { password: string };
 
 export interface CreateStudentData {
   nombre: string;
@@ -21,4 +29,8 @@ export interface UpdateStudentData {
   matricula?: string;
   email?: string;
   password?: string;
+}
+
+export interface StudentListResponse {
+  data: Student[];
 }

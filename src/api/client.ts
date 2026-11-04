@@ -1,24 +1,27 @@
-import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
+import { create, AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { storage } from '../utils/storage';
 import { handleApiError } from '../utils/errorHandler';
+import { API_URL } from '../constants/api';
 
-const API_BASE_URL = 'http://localhost:3000/api';
-
-export const apiClient = axios.create({
+const API_BASE_URL = API_URL;
+const apiClientConfig = {
   baseURL: API_BASE_URL,
   timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
   },
-});
+};
+
+export const apiClient = create(apiClientConfig);
+const refreshClient = create(apiClientConfig);
 
 let isRefreshing = false;
-let failedQueue: Array<{
+let failedQueue: {
   resolve: (token: string) => void;
-  reject: (error: any) => void;
-}> = [];
+  reject: (error: unknown) => void;
+}[] = [];
 
-const processQueue = (error: any, token: string | null = null) => {
+const processQueue = (error: unknown, token: string | null = null) => {
   failedQueue.forEach((promise) => {
     if (error) {
       promise.reject(error);
@@ -37,11 +40,19 @@ const refreshAccessToken = async (): Promise<string | null> => {
       return null;
     }
 
-    const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+    const response = await refreshClient.post<{
+      accessToken?: string;
+      token?: string;
+      refreshToken?: string;
+    }>('/auth/refresh', {
       refreshToken,
     });
 
-    const { accessToken, refreshToken: newRefreshToken } = response.data;
+    const accessToken = response.data.accessToken ?? response.data.token;
+    const newRefreshToken = response.data.refreshToken;
+    if (!accessToken) {
+      throw new Error('La API no devolvió un token de acceso al renovar la sesión.');
+    }
     
     await storage.saveToken(accessToken);
     if (newRefreshToken) {
@@ -77,7 +88,13 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
-    const originalRequest = error.config as any;
+    const originalRequest = error.config as
+      | (InternalAxiosRequestConfig & { _retry?: boolean })
+      | undefined;
+
+    if (!originalRequest) {
+      return Promise.reject(handleApiError(error));
+    }
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {

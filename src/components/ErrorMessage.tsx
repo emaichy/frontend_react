@@ -3,21 +3,30 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { ApiError, ErrorType } from '../types/errors';
 
 interface ErrorMessageProps {
-  error: ApiError | null;
+  error: ApiError | string | null;
   onRetry?: () => void;
   onDismiss?: () => void;
+  fullScreen?: boolean;
 }
 
 export const ErrorMessage: React.FC<ErrorMessageProps> = ({ 
   error, 
   onRetry, 
-  onDismiss 
+  onDismiss,
+  fullScreen = false
 }) => {
   if (!error) return null;
 
+  const message = typeof error === 'string'
+    ? error
+    : error?.message || 'Ha ocurrido un error inesperado.';
+
+  const errorType = typeof error === 'string' ? null : error?.type;
+
   const getIcon = () => {
-    switch (error.type) {
+    switch (errorType) {
       case ErrorType.NETWORK_ERROR:
+      case ErrorType.TIMEOUT:
         return '🔌';
       case ErrorType.UNAUTHORIZED:
         return '🔐';
@@ -30,25 +39,54 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
     }
   };
 
-  const canRetry = error.type === ErrorType.NETWORK_ERROR || 
-                   error.type === ErrorType.TIMEOUT;
+  const canRetry = Boolean(
+    onRetry &&
+    (typeof error === 'string' ||
+     errorType === ErrorType.NETWORK_ERROR ||
+     errorType === ErrorType.TIMEOUT)
+  );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.icon}>{getIcon()}</Text>
-        <Text style={styles.message}>{error.message}</Text>
+    <View
+      style={[styles.container, fullScreen && styles.fullScreenContainer]}
+      accessibilityRole="alert"
+    >
+      <View style={[styles.content, fullScreen && styles.fullScreenContent]}>
+        <Text
+          style={[styles.icon, fullScreen && styles.fullScreenIcon]}
+          accessibilityRole="image"
+          accessibilityLabel="Icono de estado de error"
+        >
+          {getIcon()}
+        </Text>
+
+        <View style={fullScreen ? styles.textCenter : styles.textFlex}>
+          {fullScreen && <Text style={styles.title}>¡Oops!</Text>}
+          <Text style={[styles.message, fullScreen && styles.fullScreenMessage]}>
+            {message}
+          </Text>
+        </View>
       </View>
       
-      <View style={styles.actions}>
-        {canRetry && onRetry && (
-          <TouchableOpacity style={styles.retryButton} onPress={onRetry}>
+      <View style={[styles.actions, fullScreen && styles.fullScreenActions]}>
+        {canRetry && (
+          <TouchableOpacity
+            style={styles.retryButton}
+            onPress={onRetry}
+            accessibilityRole="button"
+            accessibilityHint="Reintenta realizar la operación fallida"
+          >
             <Text style={styles.retryText}>Reintentar</Text>
           </TouchableOpacity>
         )}
         
         {onDismiss && (
-          <TouchableOpacity style={styles.dismissButton} onPress={onDismiss}>
+          <TouchableOpacity
+            style={styles.dismissButton}
+            onPress={onDismiss}
+            accessibilityRole="button"
+            accessibilityHint="Descarta este mensaje de error"
+          >
             <Text style={styles.dismissText}>Cerrar</Text>
           </TouchableOpacity>
         )}
@@ -71,29 +109,70 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  fullScreenContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderLeftWidth: 0,
+    margin: 0,
+    padding: 24,
+    shadowOpacity: 0,
+    elevation: 0,
+  },
   content: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 12,
+  },
+  fullScreenContent: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    marginBottom: 20,
   },
   icon: {
     fontSize: 24,
     marginRight: 12,
   },
-  message: {
+  fullScreenIcon: {
+    fontSize: 48,
+    marginRight: 0,
+    marginBottom: 16,
+  },
+  textFlex: {
     flex: 1,
+  },
+  textCenter: {
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginBottom: 8,
+  },
+  message: {
     fontSize: 14,
     color: '#333',
     lineHeight: 20,
+  },
+  fullScreenMessage: {
+    fontSize: 16,
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: 24,
   },
   actions: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
   },
+  fullScreenActions: {
+    justifyContent: 'center',
+    width: '100%',
+  },
   retryButton: {
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    backgroundColor: '#3B82F6',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
     borderRadius: 8,
     marginRight: 8,
   },
@@ -105,7 +184,7 @@ const styles = StyleSheet.create({
   dismissButton: {
     backgroundColor: '#f0f0f0',
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderRadius: 8,
   },
   dismissText: {

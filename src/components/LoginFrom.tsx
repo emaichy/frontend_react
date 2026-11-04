@@ -1,6 +1,4 @@
-
-import { useState } from "react";
-
+import React, { useState } from "react";
 import {
     Button,
     Pressable,
@@ -9,7 +7,6 @@ import {
     TextInput,
     View
 } from "react-native";
-
 import { LoginFormProps } from "../interfaces/auth.interface";
 
 export default function LoginForm({
@@ -17,83 +14,54 @@ export default function LoginForm({
     loading,
     error
 }: LoginFormProps) {
-
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
-    // Errores individuales del formulario
     const [emailError, setEmailError] = useState("");
     const [passwordError, setPasswordError] = useState("");
-
-    // Mostrar u ocultar contraseña
     const [showPassword, setShowPassword] = useState(false);
 
-    // Limpiar error del correo al escribir
     const handleEmailChange = (text: string) => {
         setEmail(text);
-
-        if (text.trim() !== "") {
-            setEmailError("");
-        }
+        if (text.trim() !== "") setEmailError("");
     };
 
-    // Limpiar error de contraseña al escribir
     const handlePasswordChange = (text: string) => {
         setPassword(text);
-
-        if (text.trim() !== "") {
-            setPasswordError("");
-        }
+        if (text.trim() !== "") setPasswordError("");
     };
 
     const handleLogin = () => {
-
         let valid = true;
 
-        // Limpiar errores anteriores
         setEmailError("");
         setPasswordError("");
 
-        // Validar correo vacío
         if (email.trim() === "") {
             setEmailError("El correo electrónico es obligatorio");
             valid = false;
         }
 
-        // Validar contraseña vacía
         if (password.trim() === "") {
             setPasswordError("La contraseña es obligatoria");
             valid = false;
         }
 
-        // Si hay errores, no continuar
-        if (!valid) {
-            return;
-        }
+        if (!valid) return;
 
-        // Enviar datos al hook
         onLogin(email.trim(), password);
     };
 
     return (
         <View style={styles.container}>
-
-            <Text style={styles.title}>
-                Iniciar sesión
-            </Text>
+            <Text style={styles.title}>Iniciar sesión</Text>
 
             {/* CORREO ELECTRÓNICO */}
-
-            <Text style={styles.label}>
-                Correo Electrónico
-            </Text>
-
+            <Text style={styles.label}>Correo Electrónico</Text>
             <TextInput
                 style={[
                     styles.input,
-                    emailError !== ""
-                        ? styles.inputError
-                        : null
+                    emailError !== "" ? styles.inputError : null
                 ]}
                 placeholder="Ingresa tu correo electrónico"
                 value={email}
@@ -103,28 +71,18 @@ export default function LoginForm({
                 keyboardType="email-address"
                 editable={!loading}
             />
-
             {emailError !== "" && (
-                <Text style={styles.error}>
-                    {emailError}
-                </Text>
+                <Text style={styles.errorText}>{emailError}</Text>
             )}
 
             {/* CONTRASEÑA */}
-
-            <Text style={styles.label}>
-                Contraseña
-            </Text>
-
-            <View style={styles.passwordContainer}>
-
+            <Text style={styles.label}>Contraseña</Text>
+            <View style={[
+                styles.passwordContainer,
+                passwordError !== "" ? styles.inputError : null
+            ]}>
                 <TextInput
-                    style={[
-                        styles.passwordInput,
-                        passwordError !== ""
-                            ? styles.inputError
-                            : null
-                    ]}
+                    style={styles.passwordInput}
                     placeholder="Ingresa tu contraseña"
                     value={password}
                     onChangeText={handlePasswordChange}
@@ -132,105 +90,103 @@ export default function LoginForm({
                     autoCapitalize="none"
                     editable={!loading}
                 />
-
                 <Pressable
-                    onPress={() =>
-                        setShowPassword(!showPassword)
-                    }
+                    onPress={() => setShowPassword(!showPassword)}
                     style={styles.showButton}
                     disabled={loading}
+                    accessibilityRole="button"
+                    accessibilityLabel={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                 >
-                    <Text>
-                        {showPassword
-                            ? "Ocultar"
-                            : "Mostrar"}
+                    <Text style={styles.showButtonText}>
+                        {showPassword ? "Ocultar" : "Mostrar"}
                     </Text>
                 </Pressable>
-
             </View>
-
             {passwordError !== "" && (
-                <Text style={styles.error}>
-                    {passwordError}
-                </Text>
+                <Text style={styles.errorText}>{passwordError}</Text>
             )}
 
-            {/* ERROR DE AUTENTICACIÓN */}
-
+            {/* ERROR DE AUTENTICACIÓN (BACKEND) */}
             {error !== "" && (
-                <Text style={styles.error}>
+                <Text style={[styles.errorText, styles.globalError]}>
                     {error}
                 </Text>
             )}
 
-            {/* BOTÓN */}
-
-            <Button
-                title={
-                    loading
-                        ? "Validando..."
-                        : "Iniciar sesión"
-                }
-                onPress={handleLogin}
-                disabled={loading}
-            />
-
+            {/* BOTÓN SUBMIT */}
+            <View style={styles.buttonContainer}>
+                <Button
+                    title={loading ? "Validando..." : "Iniciar sesión"}
+                    onPress={handleLogin}
+                    disabled={loading}
+                />
+            </View>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-
     container: {
         width: "100%",
         padding: 20,
     },
-
     title: {
         fontSize: 28,
         fontWeight: "bold",
         textAlign: "center",
         marginBottom: 30,
+        color: "#111827",
     },
-
     label: {
-        fontSize: 16,
-        fontWeight: "bold",
-        marginBottom: 5,
+        fontSize: 14,
+        fontWeight: "600",
+        marginBottom: 6,
+        color: "#374151",
     },
-
     input: {
         borderWidth: 1,
-        borderColor: "#ccc",
+        borderColor: "#D1D5DB",
         borderRadius: 8,
         padding: 12,
-        marginBottom: 5,
+        marginBottom: 4,
+        backgroundColor: "#FFFFFF",
     },
-
     passwordContainer: {
         flexDirection: "row",
         alignItems: "center",
         borderWidth: 1,
-        borderColor: "#ccc",
+        borderColor: "#D1D5DB",
         borderRadius: 8,
-        marginBottom: 5,
+        marginBottom: 4,
+        backgroundColor: "#FFFFFF",
     },
-
     passwordInput: {
         flex: 1,
         padding: 12,
     },
-
     showButton: {
-        padding: 10,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
     },
-
+    showButtonText: {
+        color: "#3B82F6",
+        fontWeight: "600",
+        fontSize: 14,
+    },
     inputError: {
-        borderColor: "red",
+        borderColor: "#EF4444",
     },
-
-    error: {
-        color: "red",
-        marginBottom: 15,
+    errorText: {
+        color: "#EF4444",
+        fontSize: 12,
+        marginBottom: 12,
+    },
+    globalError: {
+        fontSize: 14,
+        textAlign: "center",
+        marginVertical: 8,
+    },
+    buttonContainer: {
+        marginTop: 12,
     },
 });

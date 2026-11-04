@@ -12,14 +12,16 @@ export enum ErrorType {
 export class ApiError extends Error {
   type: ErrorType;
   status?: number;
-  data?: any;
+  data?: unknown;
 
-  constructor(type: ErrorType, message: string, status?: number, data?: any) {
+  constructor(type: ErrorType, message: string, status?: number, data?: unknown) {
     super(message);
     this.name = 'ApiError';
     this.type = type;
     this.status = status;
     this.data = data;
+
+    Object.setPrototypeOf(this, ApiError.prototype);
   }
 
   static isNetworkError(error: unknown): error is ApiError {
