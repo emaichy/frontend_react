@@ -1,12 +1,5 @@
 import { configureStore, createSlice, PayloadAction } from "@reduxjs/toolkit";
-
-interface User {
-    id: number;
-    email: string;
-    nombre?: string;
-    apellido?: string;
-    matricula?: string;
-}
+import type { User } from "../types/user";
 
 interface AuthState {
     user: User | null;

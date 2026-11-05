@@ -9,6 +9,7 @@ import { useSelector } from "react-redux";
 import { SideMenuProps } from "../interfaces/menu.interface";
 import { RootState } from "../store/store";
 import MenuItem from "./MenuItem";
+import { getUserDisplayName } from "../utils/userDisplay";
 
 export default function SideMenu({
     visible,
@@ -26,9 +27,7 @@ export default function SideMenu({
     }
 
     // Calcular el nombre completo o email por defecto
-    const displayName = user?.nombre
-        ? `${user.nombre} ${user.apellido}`.trim()
-        : user?.email ? user.email.split("@")[0] : "Alumno";
+    const displayName = getUserDisplayName(user);
 
     const initial = displayName.charAt(0).toUpperCase();
 

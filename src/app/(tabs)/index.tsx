@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../hooks/useAuth';
+import { getUserDisplayName } from '../../utils/userDisplay';
 
 export default function HomeScreen() {
   const { user, logout } = useAuth();
@@ -24,9 +25,11 @@ export default function HomeScreen() {
       <View style={styles.content}>
         <View style={styles.welcomeCard}>
           <Text style={styles.emoji}>👋</Text>
-          <Text style={styles.welcomeTitle}>¡Bienvenido!</Text>
+          <Text style={styles.welcomeTitle}>
+            ¡Bienvenido, {getUserDisplayName(user)}!
+          </Text>
           <Text style={styles.welcomeSubtitle}>
-            {user?.email || 'Usuario'}
+            {user?.email || 'Correo no disponible'}
           </Text>
         </View>
 
@@ -40,6 +43,15 @@ export default function HomeScreen() {
           <Text style={styles.logoutButtonText}>
             {isLoggingOut ? 'Cerrando sesión...' : 'Cerrar sesión'}
           </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.normalHomeButton}
+          onPress={() => router.push('/home')}
+          accessibilityRole="button"
+          accessibilityLabel="Volver al inicio normal"
+        >
+          <Text style={styles.normalHomeButtonText}>Volver al inicio normal</Text>
         </TouchableOpacity>
 
         <View style={styles.section}>
@@ -148,6 +160,19 @@ const styles = StyleSheet.create({
   },
   logoutButtonText: {
     color: '#B91C1C',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  normalHomeButton: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#DBEAFE',
+    borderRadius: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 11,
+    marginBottom: 20,
+  },
+  normalHomeButtonText: {
+    color: '#1D4ED8',
     fontSize: 15,
     fontWeight: '600',
   },

@@ -8,6 +8,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useAuth } from '../../hooks/useAuth';
 import { Loading } from '../../components';
 import BackToHomeButton from '../../components/BackToHomeButton';
+import { getUserDisplayName } from '../../utils/userDisplay';
 
 export default function ProfileScreen() {
   const { user, loading, logout, isAuthenticated } = useAuth();
@@ -31,6 +32,8 @@ export default function ProfileScreen() {
       </View>
     );
   }
+
+  const displayName = getUserDisplayName(user);
 
   // Confirmar logout
   const handleLogout = () => {
@@ -57,16 +60,28 @@ export default function ProfileScreen() {
       <View style={styles.profileCard}>
         <View style={styles.avatarContainer}>
           <Text style={styles.avatar}>
-            {user.email.charAt(0).toUpperCase()}
+            {displayName.charAt(0).toUpperCase()}
           </Text>
         </View>
-        <Text style={styles.title}>Mi Perfil</Text>
+        <Text style={styles.title}>{displayName}</Text>
         <Text style={styles.email}>{user.email}</Text>
       </View>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Información de cuenta</Text>
         
+        <View style={styles.infoRow}>
+          <Text style={styles.label}>Nombre:</Text>
+          <Text style={styles.value}>{displayName}</Text>
+        </View>
+
+        {user.matricula ? (
+          <View style={styles.infoRow}>
+            <Text style={styles.label}>Matrícula:</Text>
+            <Text style={styles.value}>{user.matricula}</Text>
+          </View>
+        ) : null}
+
         <View style={styles.infoRow}>
           <Text style={styles.label}>ID de usuario:</Text>
           <Text style={styles.value}>{user.id}</Text>

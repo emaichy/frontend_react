@@ -11,6 +11,7 @@ import { useDispatch, useSelector } from "react-redux";
 import SideMenu from "../components/SideMenu";
 import { RootState, logout } from "../store/store";
 import { removeStorage } from "../utils/authStorage";
+import { getUserFirstName } from "../utils/userDisplay";
 
 export default function HomeScreen() {
     const router = useRouter();
@@ -21,10 +22,7 @@ export default function HomeScreen() {
     const user = useSelector((state: RootState) => state.auth.user);
 
     // Nombre para mostrar en el saludo
-    const firstName = user?.nombre
-        ? user.nombre
-        
-        : user?.email ? user.email.split("@")[0] : "Usuario";
+    const firstName = getUserFirstName(user);
 
     const handleLogout = async () => {
         setMenuOpen(false);
@@ -56,6 +54,15 @@ export default function HomeScreen() {
                 <Text style={styles.subtitle}>
                     Nos alegra verte nuevamente.
                 </Text>
+                <Text style={styles.accountEmail}>{user?.email || "Correo no disponible"}</Text>
+                <TouchableOpacity
+                    style={styles.tabsButton}
+                    onPress={() => router.push("/(tabs)")}
+                    accessibilityRole="button"
+                    accessibilityLabel="Ir a las pestañas"
+                >
+                    <Text style={styles.tabsButtonText}>Ir a las pestañas</Text>
+                </TouchableOpacity>
             </View>
 
             <SideMenu
@@ -117,5 +124,23 @@ const styles = StyleSheet.create({
     subtitle: {
         fontSize: 16,
         color: "#a1a1aa",
+    },
+    accountEmail: {
+        marginTop: 8,
+        fontSize: 14,
+        color: "#d4d4d8",
+    },
+    tabsButton: {
+        alignSelf: "flex-start",
+        marginTop: 24,
+        paddingHorizontal: 18,
+        paddingVertical: 12,
+        borderRadius: 10,
+        backgroundColor: "#2563EB",
+    },
+    tabsButtonText: {
+        color: "#ffffff",
+        fontSize: 16,
+        fontWeight: "600",
     },
 });

@@ -1,10 +1,6 @@
-export interface User {
-  id: number;
-  email: string;
-  nombre?: string;
-  apellido?: string;
-  matricula?: string;
-}
+import type { User } from './user';
+
+export type { User } from './user';
 
 export interface LoginCredentials {
   email: string;

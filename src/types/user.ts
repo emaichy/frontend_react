@@ -5,6 +5,9 @@
 export interface User {
   id: number;
   email: string;
+  nombre?: string;
+  apellido?: string;
+  matricula?: string;
 }
 
 export interface UserMeResponse {

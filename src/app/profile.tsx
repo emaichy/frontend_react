@@ -6,15 +6,14 @@ import { useDispatch, useSelector } from "react-redux";
 import MenuItem from "../components/MenuItem"; // Reutilizamos tu componente MenuItem
 import { RootState, logout } from "../store/store";
 import { removeStorage } from "../utils/authStorage";
+import { getUserDisplayName } from "../utils/userDisplay";
 
 export default function ProfileScreen() {
     const router = useRouter();
     const dispatch = useDispatch();
     const user = useSelector((state: RootState) => state.auth.user);
 
-    const displayName = user?.nombre
-        ? `${user.nombre} ${user.apellido}`.trim()
-        : user?.email ? user.email.split("@")[0] : "Alumno";
+    const displayName = getUserDisplayName(user);
 
     const initial = displayName.charAt(0).toUpperCase();
 
@@ -50,6 +49,9 @@ export default function ProfileScreen() {
                 </View>
                 <Text style={styles.name}>{displayName}</Text>
                 <Text style={styles.email}>{user?.email || "Sin correo"}</Text>
+                {user?.matricula ? (
+                    <Text style={styles.email}>Matrícula: {user.matricula}</Text>
+                ) : null}
                 {user?.matricula ? (
                     <Text style={styles.matricula}>Matrícula: {user.matricula}</Text>
                 ) : null}
