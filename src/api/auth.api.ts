@@ -39,8 +39,8 @@ export const authApi = {
     return response.data;
   },
 
-  logout: async (accessToken: string): Promise<void> => {
-    await logoutClient.post('/auth/logout', undefined, {
+  logout: async (accessToken: string, refreshToken?: string): Promise<void> => {
+    await logoutClient.post('/auth/logout', { refreshToken }, {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
   },

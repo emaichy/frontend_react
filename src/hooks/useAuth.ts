@@ -146,8 +146,9 @@ export function useAuth(): UseAuthReturn {
   const logout = useCallback(async () => {
     try {
       const accessToken = await storage.getToken();
+      const refreshToken = await storage.getRefreshToken();
       if (accessToken) {
-        await authApi.logout(accessToken);
+        await authApi.logout(accessToken, refreshToken ?? undefined);
       }
     } catch (error) {
       console.warn('No se pudo invalidar la sesión en el servidor:', error);
