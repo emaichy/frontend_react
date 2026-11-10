@@ -2,13 +2,13 @@
  * Formulario para crear/editar estudiantes
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, TextInput, StyleSheet, TouchableOpacity, Text, Alert, Keyboard } from 'react-native';
-import { Student, StudentInput } from '../types/student';
+import { Student, StudentFormData } from '../types/student';
 
 interface StudentFormProps {
   student?: Student;
-  onSubmit: (data: StudentInput) => Promise<void>;
+  onSubmit: (data: StudentFormData) => Promise<void>;
   onCancel: () => void;
 }
 
@@ -20,9 +20,33 @@ export default function StudentForm({ student, onSubmit, onCancel }: StudentForm
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
+  // Resincroniza o limpia el formulario si cambia el estudiante seleccionado
+  useEffect(() => {
+    if (student) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setNombre(student.nombre || '');
+      setApellido(student.apellido || '');
+      setMatricula(student.matricula || '');
+      setEmail(student.email || '');
+      setPassword('');
+    } else {
+      setNombre('');
+      setApellido('');
+      setMatricula('');
+      setEmail('');
+      setPassword('');
+    }
+  }, [student]);
+
   const handleSubmit = async () => {
+    // Si es un nuevo registro, requerimos también la contraseña
     if (!nombre.trim() || !apellido.trim() || !matricula.trim() || !email.trim()) {
-      Alert.alert('Error', 'Todos los campos son obligatorios');
+      Alert.alert('Error', 'Nombre, apellido, matrícula y correo son obligatorios');
+      return;
+    }
+
+    if (!student && password.trim().length < 6) {
+      Alert.alert('Error', 'La contraseña es obligatoria y debe tener al menos 6 caracteres');
       return;
     }
 
@@ -33,11 +57,14 @@ export default function StudentForm({ student, onSubmit, onCancel }: StudentForm
         apellido: apellido.trim(),
         matricula: matricula.trim(),
         email: email.trim(),
-        password,
+        ...(!student ? { password } : {}),
       });
       Keyboard.dismiss();
-    } catch {
-      Alert.alert('Error', 'No se pudo guardar el estudiante');
+    } catch (error) {
+      Alert.alert(
+        'Error',
+        error instanceof Error ? error.message : 'No se pudo guardar el estudiante'
+      );
     } finally {
       setSubmitting(false);
     }

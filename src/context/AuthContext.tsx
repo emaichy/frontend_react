@@ -2,9 +2,9 @@
  * Context para manejo global de autenticación
  */
 
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
 import { User } from '../types/user';
-import { authApi } from '../api/auth.api';
+import * as authApi from '../api/auth.api';
 import { storage } from '../utils/storage';
 import { handleApiError } from '../utils/errorHandler';
 import { ApiError, ErrorType } from '../types/errors';
@@ -71,8 +71,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUser(response.user);
       setIsAuthenticated(true);
       return true;
-    } catch (error) {
-      const apiError = handleApiError(error);
+    } catch (err) {
+      const apiError = handleApiError(err);
       setError(apiError);
       setIsAuthenticated(false);
       return false;
@@ -82,30 +82,33 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   const logout = useCallback(async () => {
-    const accessToken = await storage.getToken();
-    await storage.clearAll();
-    setUser(null);
-    setIsAuthenticated(false);
-
-    if (accessToken) {
-      void authApi.logout(accessToken).catch((error: unknown) => {
-        console.warn('No se pudo invalidar la sesión en el servidor:', error);
-      });
+    try {
+      const accessToken = await storage.getToken();
+      if (accessToken) {
+        await authApi.logout(accessToken);
+      }
+    } catch (err) {
+      console.warn('No se pudo invalidar la sesión en el servidor:', err);
+    } finally {
+      await storage.clearAll();
+      setUser(null);
+      setIsAuthenticated(false);
     }
   }, []);
 
   useEffect(() => {
-    void Promise.resolve().then(checkAuth);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void checkAuth();
   }, [checkAuth]);
 
-  const value: AuthContextType = {
+  const value = useMemo<AuthContextType>(() => ({
     user,
     loading,
     error,
     isAuthenticated,
     login,
     logout,
-  };
+  }), [user, loading, error, isAuthenticated, login, logout]);
 
   return (
     <AuthContext.Provider value={value}>

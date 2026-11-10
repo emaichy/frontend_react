@@ -2,7 +2,8 @@
  * Hook personalizado para manejar la lista de estudiantes
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
+import { useFocusEffect } from 'expo-router';
 import { studentService } from '../services/studentService';
 import { Student } from '../types/student';
 
@@ -20,51 +21,58 @@ interface UseStudentsReturn extends UseStudentsState {
 export function useStudents(): UseStudentsReturn {
   const [state, setState] = useState<UseStudentsState>({
     students: [],
-    loading: false,
+    loading: true,
     error: null,
   });
 
-  const fetchStudents = useCallback(async () => {
+  const fetchStudents = useCallback(async (forceRefresh = false) => {
     setState(prev => ({ ...prev, loading: true, error: null }));
     
     try {
-      const students = await studentService.getAll();
+      const students = await studentService.getAll(forceRefresh);
       setState({ students, loading: false, error: null });
-    } catch {
+    } catch (error) {
       setState(prev => ({
         ...prev,
         loading: false,
-        error: 'Error al cargar estudiantes',
+        error: error instanceof Error ? error.message : 'Error al cargar estudiantes',
       }));
     }
   }, []);
 
   const deleteStudent = useCallback(async (id: number) => {
-    const previousStudents = state.students;
-    
-    setState(prev => ({
-      ...prev,
-      students: prev.students.filter(s => s.id !== id),
-    }));
+    let deletedStudent: Student | undefined;
+
+    // Eliminación optimista en UI
+    setState(prev => {
+      deletedStudent = prev.students.find(s => s.id === id);
+      return {
+        ...prev,
+        students: prev.students.filter(s => s.id !== id),
+      };
+    });
 
     try {
       await studentService.delete(id);
     } catch {
+      // Reversión granular si la API falla
       setState(prev => ({
         ...prev,
-        students: previousStudents,
+        students: deletedStudent ? [...prev.students, deletedStudent] : prev.students,
         error: 'Error al eliminar estudiante',
       }));
     }
-  }, [state.students]);
+  }, []);
 
-  useEffect(() => {
-    void Promise.resolve().then(fetchStudents);
-  }, [fetchStudents]);
+  useFocusEffect(
+    useCallback(() => {
+      void fetchStudents();
+    }, [fetchStudents])
+  );
 
   return {
     ...state,
-    refresh: fetchStudents,
+    refresh: useCallback(() => fetchStudents(true), [fetchStudents]),
     deleteStudent,
   };
 }

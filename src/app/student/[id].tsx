@@ -3,28 +3,26 @@
  * Muestra información completa de un estudiante específico
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { useApi } from '../../hooks/useApi';
-import { getStudentById, deleteStudent } from '../../api/students.api';
+import { studentService } from '../../services/studentService';
 import { Loading, ErrorMessage } from '../../components';
+import BackToHomeButton from '../../components/BackToHomeButton';
 
 export default function StudentDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-
-  const { data: student, loading, error, execute: loadStudent } = useApi(() =>
-    getStudentById(Number(id))
+  const loadStudentData = useCallback(
+    () => studentService.getById(Number(id)),
+    [id]
   );
-
-  const { execute: executeDelete, loading: deleting } = useApi(() =>
-    deleteStudent(Number(id))
-  );
+  const { data: student, loading, error, execute: loadStudent } = useApi(loadStudentData);
 
   // Cargar datos del estudiante
   useEffect(() => {
-    loadStudent();
+    void loadStudent();
   }, [loadStudent]);
 
   // Confirmar eliminación
@@ -41,8 +39,12 @@ export default function StudentDetailScreen() {
           text: 'Eliminar',
           style: 'destructive',
           onPress: async () => {
-            await executeDelete();
-            router.back();
+            try {
+              await studentService.delete(Number(id));
+              router.replace('/(tabs)/students');
+            } catch {
+              Alert.alert('Error', 'No se pudo eliminar el estudiante');
+            }
           },
         },
       ]
@@ -82,6 +84,10 @@ export default function StudentDetailScreen() {
           title: `${student.nombre} ${student.apellido}`,
         }}
       />
+
+      <View style={styles.backButton}>
+        <BackToHomeButton />
+      </View>
 
       <View style={styles.header}>
         <View style={styles.avatar}>
@@ -140,6 +146,12 @@ export default function StudentDetailScreen() {
       </View>
 
       <View style={styles.actions}>
+        <Text
+          style={styles.editButton}
+          onPress={() => router.push(`/student/edit/${student.id}`)}
+        >
+          Editar estudiante
+        </Text>
         <Text style={styles.deleteButton} onPress={handleDelete}>
           🗑️ Eliminar estudiante
         </Text>
@@ -221,6 +233,16 @@ const styles = StyleSheet.create({
   actions: {
     padding: 20,
     alignItems: 'center',
+    gap: 16,
+  },
+  backButton: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+  },
+  editButton: {
+    fontSize: 16,
+    color: '#2563EB',
+    fontWeight: '600',
   },
   deleteButton: {
     fontSize: 16,

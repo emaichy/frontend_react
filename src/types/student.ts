@@ -13,15 +13,11 @@ export interface Student {
 export type StudentInput = Omit<
   Student,
   'id' | 'createdAt' | 'updatedAt' | 'created_at' | 'updated_at'
-> & { password: string };
+>;
 
-export interface CreateStudentData {
-  nombre: string;
-  apellido: string;
-  matricula: string;
-  email: string;
-  password: string;
-}
+export type StudentFormData = StudentInput & { password?: string };
+
+export type CreateStudentData = StudentInput & { password: string };
 
 export interface UpdateStudentData {
   nombre?: string;

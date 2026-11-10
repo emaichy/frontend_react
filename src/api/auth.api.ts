@@ -45,3 +45,5 @@ export const authApi = {
     });
   },
 };
+
+export const { login, register, getCurrentUser, logout } = authApi;

@@ -6,6 +6,7 @@ import { Provider, useDispatch } from "react-redux";
 
 import { setToken, setUser, store } from "../store/store";
 import { getStorage } from "../utils/authStorage";
+import ErrorBoundary from "../components/ErrorBoundary";
 
 // Previene que la pantalla de carga nativa se oculte automáticamente
 SplashScreen.preventAutoHideAsync();
@@ -49,28 +50,30 @@ function AuthInitializer({ children }: { children: React.ReactNode }) {
 export default function RootLayout() {
     return (
         <Provider store={store}>
-            <AuthInitializer>
-                <Stack>
-                    <Stack.Screen
-                        name="index"
-                        options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                        name="(tabs)"
-                        options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                        name="student/[id]"
-                        options={{
-                            headerShown: true,
-                            title: "Detalle de Estudiante",
-                            headerStyle: { backgroundColor: "#FFFFFF" },
-                            headerTitleStyle: { fontWeight: "600" },
-                            headerTintColor: "#111827",
-                        }}
-                    />
-                </Stack>
-            </AuthInitializer>
+            <ErrorBoundary>
+                <AuthInitializer>
+                    <Stack>
+                        <Stack.Screen
+                            name="index"
+                            options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                            name="(tabs)"
+                            options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                            name="student/[id]"
+                            options={{
+                                headerShown: false,
+                                title: "Detalle de Estudiante",
+                                headerStyle: { backgroundColor: "#FFFFFF" },
+                                headerTitleStyle: { fontWeight: "600" },
+                                headerTintColor: "#111827",
+                            }}
+                        />
+                    </Stack>
+                </AuthInitializer>
+            </ErrorBoundary>
         </Provider>
     );
 }

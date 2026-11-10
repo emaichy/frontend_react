@@ -2,49 +2,92 @@
  * Componente de lista de estudiantes
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { View, FlatList, TextInput, StyleSheet, Text } from 'react-native';
+import React, { useState, useMemo, useCallback } from 'react';
+import {
+  View,
+  FlatList,
+  StyleSheet,
+  Text,
+  RefreshControl,
+  TouchableOpacity,
+} from 'react-native';
 import StudentCard from './StudentCard';
+import SearchBar from './SearchBar';
 import { Student } from '../types/student';
 
 interface StudentListProps {
   students: Student[];
   onStudentPress: (student: Student) => void;
+  onRefresh?: () => void;
+  refreshing?: boolean;
+  onAddStudent?: () => void;
 }
 
-export default function StudentList({ students, onStudentPress }: StudentListProps) {
+export default function StudentList({
+  students,
+  onStudentPress,
+  onRefresh,
+  refreshing = false,
+  onAddStudent,
+}: StudentListProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredStudents = useMemo(() => {
     if (!searchQuery) return students;
-    
-    const query = searchQuery.toLowerCase();
+
+    const query = searchQuery.trim().toLocaleLowerCase();
     return students.filter(student =>
-      student.nombre.toLowerCase().includes(query) ||
-      student.apellido.toLowerCase().includes(query) ||
-      student.matricula.toLowerCase().includes(query)
+      [student.nombre, student.apellido, student.matricula, student.email]
+        .some(value => value.toLocaleLowerCase().includes(query))
     );
   }, [students, searchQuery]);
 
-  const renderStudent = ({ item, index }: { item: Student; index: number }) => (
+  const handleSearchChange = useCallback((query: string) => {
+    setSearchQuery(query);
+  }, []);
+
+  const renderStudent = ({ item }: { item: Student }) => (
     <StudentCard student={item} onPress={() => onStudentPress(item)} />
   );
 
   return (
     <View style={styles.container}>
-      <TextInput
-        style={styles.searchInput}
-        placeholder="Buscar por nombre, apellido o matrícula..."
+      <SearchBar
         value={searchQuery}
-        onChangeText={setSearchQuery}
+        onChangeText={handleSearchChange}
+        placeholder="Buscar por nombre, apellido o matrícula..."
+        onClear={() => setSearchQuery('')}
       />
+      {onAddStudent ? (
+        <TouchableOpacity
+          accessibilityRole="button"
+          onPress={onAddStudent}
+          style={styles.addButton}
+        >
+          <Text style={styles.addButtonText}>+ Agregar estudiante</Text>
+        </TouchableOpacity>
+      ) : null}
       <FlatList
         data={filteredStudents}
         renderItem={renderStudent}
-        keyExtractor={(item, index) => `${item.id}-${index}`}
+        keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.listContent}
+        refreshControl={
+          onRefresh ? (
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={['#3B82F6']}
+              tintColor="#3B82F6"
+            />
+          ) : undefined
+        }
         ListEmptyComponent={
-          <Text style={styles.emptyText}>No se encontraron estudiantes</Text>
+          <Text style={styles.emptyText}>
+            {students.length === 0
+              ? 'No hay estudiantes registrados'
+              : 'No se encontraron estudiantes'}
+          </Text>
         }
       />
     </View>
@@ -56,16 +99,19 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F5F7FA',
   },
-  searchInput: {
-    backgroundColor: '#FFFFFF',
-    padding: 12,
-    marginHorizontal: 16,
-    marginVertical: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
+  addButton: {
+    alignSelf: 'flex-end',
+    marginHorizontal: 18,
+    marginBottom: 8,
+    padding: 8,
+  },
+  addButtonText: {
+    color: '#1D4ED8',
+    fontSize: 15,
+    fontWeight: '600',
   },
   listContent: {
+    flexGrow: 1,
     padding: 16,
   },
   emptyText: {

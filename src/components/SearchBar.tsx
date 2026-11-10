@@ -23,12 +23,13 @@ export default function SearchBar({
   const [localValue, setLocalValue] = useState(value);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Sincronizar el estado local si el padre resetea o cambia la prop value
   useEffect(() => {
-    // The parent can reset the search independently of this component.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLocalValue(value);
   }, [value]);
 
+  // Manejo del debounce para postergar onChangeText
   useEffect(() => {
     if (debounceTimer.current) {
       clearTimeout(debounceTimer.current);

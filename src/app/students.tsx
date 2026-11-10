@@ -1,65 +1,40 @@
-/**
- * Pantalla de lista de estudiantes
- */
-
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, RefreshControl, Alert } from 'react-native';
+import React, { useCallback } from 'react';
+import { View, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useStudents } from '../hooks/useStudents';
 import StudentList from '../components/StudentList';
 import { ErrorMessage, Loading } from '../components';
-import { studentService } from '../services/studentService';
+import BackToHomeButton from '../components/BackToHomeButton';
 
 export default function StudentsScreen() {
   const router = useRouter();
   const { students, loading, error, refresh } = useStudents();
-  const [refreshing, setRefreshing] = useState(false);
 
-  const handleStudentPress = (student: any) => {
+  const handleStudentPress = useCallback((student: { id: number }) => {
     router.push(`/student/${student.id}`);
-  };
+  }, [router]);
+  const handleAddStudent = useCallback(() => {
+    router.push('/student/new');
+  }, [router]);
 
-  const handleDeleteStudent = async (id: number) => {
-    Alert.alert(
-      'Eliminar estudiante',
-      '¿Estás seguro?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Eliminar',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await studentService.delete(id);
-              refresh();
-            } catch (error) {
-              Alert.alert('Error', 'No se pudo eliminar el estudiante');
-            }
-          },
-        },
-      ]
-    );
-  };
-
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await refresh();
-    setRefreshing(false);
-  }, [refresh]);
-
-  if (loading && !refreshing) {
+  if (loading && students.length === 0) {
     return <Loading message="Cargando estudiantes..." />;
   }
 
-  if (error) {
+  if (error && students.length === 0) {
     return <ErrorMessage error={error} onRetry={refresh} />;
   }
 
   return (
     <View style={styles.container}>
-      <StudentList 
-        students={students} 
-        onStudentPress={handleStudentPress} 
+      <BackToHomeButton />
+      {error ? <ErrorMessage error={error} onRetry={refresh} /> : null}
+      <StudentList
+        students={students}
+        onStudentPress={handleStudentPress}
+        onAddStudent={handleAddStudent}
+        onRefresh={refresh}
+        refreshing={loading}
       />
     </View>
   );
