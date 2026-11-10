@@ -1,107 +1,108 @@
 /**
- * Pantalla de inicio (Home)
- * Muestra un mensaje de bienvenida al usuario
+ * Pantalla de inicio (Home) con soporte para temas dinámicos y accesibilidad
  */
 
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../hooks/useAuth';
 import { getUserDisplayName } from '../../utils/userDisplay';
 
-export default function HomeScreen() {
-  const { user, logout } = useAuth();
-  const router = useRouter();
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
+interface QuickAction {
+  title: string;
+  description: string;
+  route: string;
+  icon: string;
+  color: string;
+}
 
-  const handleLogout = async () => {
-    if (isLoggingOut) return;
-    setIsLoggingOut(true);
-    await logout();
-  };
+export default function HomeScreen() {
+  const router = useRouter();
+  const { colors } = useTheme();
+  const { user } = useAuth();
+
+  const quickActions: QuickAction[] = [
+    {
+      title: 'Ver Estudiantes',
+      description: 'Administra la lista de estudiantes',
+      route: '/students',
+      icon: '📝',
+      color: '#3B82F6',
+    },
+    {
+      title: 'Agregar Estudiante',
+      description: 'Registra un nuevo estudiante',
+      route: '/student/new',
+      icon: '➕',
+      color: '#10B981',
+    },
+    {
+      title: 'Mi Perfil',
+      description: 'Ver y editar tu información',
+      route: '/profile',
+      icon: '👤',
+      color: '#8B5CF6',
+    },
+    {
+      title: 'Ajustes',
+      description: 'Configura las preferencias de la app',
+      route: '/settings',
+      icon: '⚙️',
+      color: '#6366F1',
+    },
+  ];
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.content}>
-        <View style={styles.welcomeCard}>
+        {/* Tarjeta de bienvenida */}
+        <View style={[styles.welcomeCard, { backgroundColor: colors.card }]}>
           <Text style={styles.emoji}>👋</Text>
-          <Text style={styles.welcomeTitle}>
-            ¡Bienvenido, {getUserDisplayName(user)}!
+          <Text style={[styles.welcomeTitle, { color: colors.text }]}>
+            ¡Bienvenido, {getUserDisplayName ? getUserDisplayName(user) : user?.email || 'Usuario'}!
           </Text>
-          <Text style={styles.welcomeSubtitle}>
+          <Text style={[styles.welcomeSubtitle, { color: colors.secondary }]}>
             {user?.email || 'Correo no disponible'}
           </Text>
         </View>
 
         <TouchableOpacity
-          style={styles.logoutButton}
-          onPress={handleLogout}
-          disabled={isLoggingOut}
-          accessibilityRole="button"
-          accessibilityLabel="Cerrar sesión"
-        >
-          <Text style={styles.logoutButtonText}>
-            {isLoggingOut ? 'Cerrando sesión...' : 'Cerrar sesión'}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.normalHomeButton}
-          onPress={() => router.push('/home')}
+          style={[styles.normalHomeButton, { backgroundColor: colors.primary }]}
+          onPress={() => router.replace('/home')}
           accessibilityRole="button"
           accessibilityLabel="Volver al inicio normal"
         >
-          <Text style={styles.normalHomeButtonText}>Volver al inicio normal</Text>
+          <Text style={styles.normalHomeButtonText}>Volver a mi inicio normal</Text>
         </TouchableOpacity>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Acciones rápidas</Text>
-          
+        {/* Sección de acciones rápidas */}
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>
+          Acciones rápidas
+        </Text>
+
+        {quickActions.map((action, index) => (
           <TouchableOpacity
-            style={styles.actionCard}
-            onPress={() => router.push('/(tabs)/students')}
+            key={index}
+            style={[styles.actionCard, { backgroundColor: colors.card }]}
+            onPress={() => router.push(action.route as any)}
             accessibilityRole="button"
-            accessibilityLabel="Ver estudiantes"
+            accessibilityLabel={action.title}
+            accessibilityHint={action.description}
           >
-            <Text style={styles.actionIcon}>📝</Text>
+            <View style={[styles.actionIconContainer, { backgroundColor: action.color }]}>
+              <Text style={styles.actionIconText}>{action.icon}</Text>
+            </View>
             <View style={styles.actionContent}>
-              <Text style={styles.actionTitle}>Ver estudiantes</Text>
-              <Text style={styles.actionDescription}>
-                Administra la lista de estudiantes
+              <Text style={[styles.actionTitle, { color: colors.text }]}>
+                {action.title}
+              </Text>
+              <Text style={[styles.actionDescription, { color: colors.secondary }]}>
+                {action.description}
               </Text>
             </View>
           </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.actionCard}
-            onPress={() => router.push('/student/new')}
-            accessibilityRole="button"
-            accessibilityLabel="Agregar estudiante"
-          >
-            <Text style={styles.actionIcon}>➕</Text>
-            <View style={styles.actionContent}>
-              <Text style={styles.actionTitle}>Agregar estudiante</Text>
-              <Text style={styles.actionDescription}>
-                Registra un nuevo estudiante
-              </Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.actionCard}
-            onPress={() => router.push('/(tabs)/profile')}
-            accessibilityRole="button"
-            accessibilityLabel="Mi perfil"
-          >
-            <Text style={styles.actionIcon}>👤</Text>
-            <View style={styles.actionContent}>
-              <Text style={styles.actionTitle}>Mi perfil</Text>
-              <Text style={styles.actionDescription}>
-                Ver y editar tu información
-              </Text>
-          </View>
-          </TouchableOpacity>
-        </View>
+        ))}
       </View>
     </ScrollView>
   );
@@ -110,13 +111,11 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F7FA',
   },
   content: {
     padding: 20,
   },
   welcomeCard: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 24,
     alignItems: 'center',
@@ -128,60 +127,40 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   emoji: {
-    fontSize: 48,
-    marginBottom: 12,
-  },
-  welcomeTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#111827',
+    fontSize: 40,
     marginBottom: 8,
   },
-  welcomeSubtitle: {
-    fontSize: 16,
-    color: '#6B7280',
+  welcomeTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 4,
+    textAlign: 'center',
   },
-  section: {
-    marginBottom: 20,
+  welcomeSubtitle: {
+    fontSize: 15,
+  },
+  normalHomeButton: {
+    alignSelf: 'flex-start',
+    borderRadius: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 11,
+    marginBottom: 24,
+  },
+  normalHomeButtonText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '600',
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#111827',
     marginBottom: 16,
   },
-  logoutButton: {
-    alignSelf: 'flex-end',
-    backgroundColor: '#FEE2E2',
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 11,
-    marginBottom: 20,
-  },
-  logoutButtonText: {
-    color: '#B91C1C',
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  normalHomeButton: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#DBEAFE',
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 11,
-    marginBottom: 20,
-  },
-  normalHomeButtonText: {
-    color: '#1D4ED8',
-    fontSize: 15,
-    fontWeight: '600',
-  },
   actionCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
+    borderRadius: 12,
+    padding: 16,
     marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -189,9 +168,16 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 1,
   },
-  actionIcon: {
-    fontSize: 32,
+  actionIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginRight: 16,
+  },
+  actionIconText: {
+    fontSize: 22,
   },
   actionContent: {
     flex: 1,
@@ -199,11 +185,9 @@ const styles = StyleSheet.create({
   actionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#111827',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   actionDescription: {
-    fontSize: 14,
-    color: '#6B7280',
+    fontSize: 13,
   },
 });

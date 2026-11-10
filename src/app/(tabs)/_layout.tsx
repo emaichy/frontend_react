@@ -1,22 +1,38 @@
 /**
- * Layout de tabs para navegación inferior
- * Define las pestañas principales de la aplicación
+ * Layout de tabs para navegación inferior con soporte para temas y badges
  */
 
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import { useCart } from '../../context/CartContext';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function TabLayout() {
+  const { itemCount } = useCart();
+  const { colors } = useTheme();
+
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#3B82F6',
-        tabBarInactiveTintColor: '#6B7280',
-        tabBarStyle: styles.tabBar,
-        tabBarLabelStyle: styles.tabBarLabel,
-        headerStyle: styles.header,
-        headerTitleStyle: styles.headerTitle,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.secondary,
+        tabBarStyle: {
+          backgroundColor: colors.background,
+          borderTopColor: colors.border,
+          borderTopWidth: 1,
+          height: 60,
+          paddingBottom: 8,
+          paddingTop: 8,
+        },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '500',
+        },
+        headerStyle: {
+          backgroundColor: colors.background,
+        },
+        headerTintColor: colors.text,
         headerTitleAlign: 'center',
       }}
     >
@@ -24,26 +40,51 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Inicio',
-          tabBarIcon: ({ color }) => (
-            <Text style={[styles.icon, { color }]}>🏠</Text>
+          tabBarLabel: 'Inicio',
+          tabBarIcon: ({ color, size }) => (
+            <TabIcon name="home" color={color} size={size} />
           ),
         }}
       />
+
       <Tabs.Screen
         name="students"
         options={{
           title: 'Estudiantes',
-          tabBarIcon: ({ color }) => (
-            <Text style={[styles.icon, { color }]}>👨‍🎓</Text>
+          tabBarLabel: 'Estudiantes',
+          tabBarIcon: ({ color, size }) => (
+            <TabIcon name="people" color={color} size={size} />
           ),
+          tabBarBadge: itemCount > 0 ? itemCount : undefined,
+          tabBarBadgeStyle: {
+            backgroundColor: '#EF4444',
+            color: '#FFFFFF',
+            fontSize: 10,
+            minWidth: 18,
+            height: 18,
+            borderRadius: 9,
+          },
         }}
       />
+
       <Tabs.Screen
         name="profile"
         options={{
           title: 'Perfil',
-          tabBarIcon: ({ color }) => (
-            <Text style={[styles.icon, { color }]}>👤</Text>
+          tabBarLabel: 'Perfil',
+          tabBarIcon: ({ color, size }) => (
+            <TabIcon name="person" color={color} size={size} />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: 'Ajustes',
+          tabBarLabel: 'Ajustes',
+          tabBarIcon: ({ color, size }) => (
+            <TabIcon name="settings" color={color} size={size} />
           ),
         }}
       />
@@ -51,32 +92,32 @@ export default function TabLayout() {
   );
 }
 
+interface TabIconProps {
+  name: 'home' | 'people' | 'person' | 'settings';
+  color: string;
+  size: number;
+}
+
+function TabIcon({ name, color, size }: TabIconProps) {
+  const icons = {
+    home: '🏠',
+    people: '👨‍🎓',
+    person: '👤',
+    settings: '⚙️',
+  };
+
+  return (
+    <View style={styles.iconContainer}>
+      <Text style={{ color, fontSize: size || 20 }}>
+        {icons[name]}
+      </Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  tabBar: {
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-    paddingTop: 8,
-    paddingBottom: 8,
-    height: 60,
-  },
-  tabBarLabel: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  header: {
-    backgroundColor: '#FFFFFF',
-    elevation: 0,
-    shadowOpacity: 0,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#111827',
-  },
-  icon: {
-    fontSize: 24,
+  iconContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

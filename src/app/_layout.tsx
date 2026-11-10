@@ -7,6 +7,9 @@ import { Provider, useDispatch } from "react-redux";
 import { setToken, setUser, store } from "../store/store";
 import { getStorage } from "../utils/authStorage";
 import ErrorBoundary from "../components/ErrorBoundary";
+import { CartProvider } from "../context/CartContext";
+import { NotificationProvider } from "../context/NotificationContext";
+import { ThemeProvider } from "../context/ThemeContext";
 
 // Previene que la pantalla de carga nativa se oculte automáticamente
 SplashScreen.preventAutoHideAsync();
@@ -51,28 +54,34 @@ export default function RootLayout() {
     return (
         <Provider store={store}>
             <ErrorBoundary>
-                <AuthInitializer>
-                    <Stack>
-                        <Stack.Screen
-                            name="index"
-                            options={{ headerShown: false }}
-                        />
-                        <Stack.Screen
-                            name="(tabs)"
-                            options={{ headerShown: false }}
-                        />
-                        <Stack.Screen
-                            name="student/[id]"
-                            options={{
-                                headerShown: false,
-                                title: "Detalle de Estudiante",
-                                headerStyle: { backgroundColor: "#FFFFFF" },
-                                headerTitleStyle: { fontWeight: "600" },
-                                headerTintColor: "#111827",
-                            }}
-                        />
-                    </Stack>
-                </AuthInitializer>
+                <ThemeProvider>
+                    <NotificationProvider>
+                        <CartProvider>
+                            <AuthInitializer>
+                                <Stack>
+                                    <Stack.Screen
+                                        name="index"
+                                        options={{ headerShown: false }}
+                                    />
+                                    <Stack.Screen
+                                        name="(tabs)"
+                                        options={{ headerShown: false }}
+                                    />
+                                    <Stack.Screen
+                                        name="student/[id]"
+                                        options={{
+                                            headerShown: false,
+                                            title: "Detalle de Estudiante",
+                                            headerStyle: { backgroundColor: "#FFFFFF" },
+                                            headerTitleStyle: { fontWeight: "600" },
+                                            headerTintColor: "#111827",
+                                        }}
+                                    />
+                                </Stack>
+                            </AuthInitializer>
+                        </CartProvider>
+                    </NotificationProvider>
+                </ThemeProvider>
             </ErrorBoundary>
         </Provider>
     );
