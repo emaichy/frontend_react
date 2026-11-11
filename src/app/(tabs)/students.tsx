@@ -10,20 +10,31 @@ import { useStudents } from '../../hooks/useStudents';
 import StudentList from '../../components/StudentList';
 import { Loading, ErrorMessage } from '../../components';
 import BackToHomeButton from '../../components/BackToHomeButton';
+import { useCart } from '../../context/CartContext';
+import { useNotification } from '../../context/NotificationContext';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function StudentsScreen() {
   const router = useRouter();
   const { students, loading, error, refresh } = useStudents();
+  const { addStudent, hasStudent } = useCart();
+  const { showSuccess } = useNotification();
+  const { colors } = useTheme();
   const handleStudentPress = useCallback((student: { id: number }) => {
     router.push(`/student/${student.id}`);
   }, [router]);
   const handleAddStudent = useCallback(() => {
     router.push('/student/new');
   }, [router]);
+  const handleAddToCart = useCallback((student: (typeof students)[number]) => {
+    if (hasStudent(student.id)) return;
+    addStudent(student);
+    showSuccess('Estudiante agregado', `${student.nombre} ${student.apellido} está en el carrito.`);
+  }, [addStudent, hasStudent, showSuccess]);
 
   if (loading && students.length === 0) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.headerAction}>
           <BackToHomeButton />
         </View>
@@ -34,7 +45,7 @@ export default function StudentsScreen() {
 
   if (error && students.length === 0) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.headerAction}>
           <BackToHomeButton />
         </View>
@@ -44,7 +55,7 @@ export default function StudentsScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.headerAction}>
         <BackToHomeButton />
       </View>
@@ -55,6 +66,8 @@ export default function StudentsScreen() {
         onRefresh={refresh}
         refreshing={loading}
         onAddStudent={handleAddStudent}
+        onAddToCart={handleAddToCart}
+        isStudentInCart={hasStudent}
       />
     </View>
   );
@@ -63,7 +76,6 @@ export default function StudentsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F7FA',
   },
   headerAction: {
     paddingHorizontal: 16,

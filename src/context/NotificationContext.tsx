@@ -40,6 +40,10 @@ export function NotificationProvider({
 }: NotificationProviderProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
+  const dismiss = useCallback((id: string) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  }, []);
+
   const generateId = () => {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
   };
@@ -64,7 +68,7 @@ export function NotificationProvider({
         dismiss(id);
       }, duration || DEFAULT_DURATION);
     }
-  }, [maxNotifications]);
+  }, [dismiss, maxNotifications]);
 
   const showSuccess = useCallback((title: string, message?: string, duration?: number) => {
     show('success', title, message, duration);
@@ -81,10 +85,6 @@ export function NotificationProvider({
   const showInfo = useCallback((title: string, message?: string, duration?: number) => {
     show('info', title, message, duration);
   }, [show]);
-
-  const dismiss = useCallback((id: string) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
-  }, []);
 
   const dismissAll = useCallback(() => {
     setNotifications([]);

@@ -2,16 +2,16 @@
  * Pantalla de perfil de usuario con soporte para temas y manejo defensivo de sesión
  */
 
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../hooks/useAuth';
 import { Loading } from '../../components';
 import { getUserDisplayName } from '../../utils/userDisplay';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
 export default function ProfileScreen() {
-  const router = useRouter();
+  const [confirmLogout, setConfirmLogout] = useState(false);
   const { colors, theme, toggleTheme } = useTheme();
   const { user, loading, logout, isAuthenticated } = useAuth();
 
@@ -35,26 +35,9 @@ export default function ProfileScreen() {
 
   const displayName = getUserDisplayName ? getUserDisplayName(user) : user.email;
 
-  const handleLogout = () => {
-    Alert.alert(
-      'Cerrar sesión',
-      '¿Estás seguro que deseas cerrar sesión?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Cerrar sesión',
-          style: 'destructive',
-          onPress: async () => {
-            await logout();
-            router.replace('/login');
-          },
-        },
-      ]
-    );
-  };
-
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
+    <>
+      <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.content}>
         {/* Tarjeta principal con Avatar */}
         <View style={[styles.profileCard, { backgroundColor: colors.card }]}>
@@ -110,12 +93,25 @@ export default function ProfileScreen() {
         {/* Botón de Logout */}
         <TouchableOpacity
           style={[styles.logoutButton, { backgroundColor: '#EF4444' }]}
-          onPress={handleLogout}
+          onPress={() => setConfirmLogout(true)}
         >
           <Text style={styles.logoutText}>Cerrar sesión</Text>
         </TouchableOpacity>
       </View>
-    </ScrollView>
+      </ScrollView>
+      <ConfirmDialog
+        visible={confirmLogout}
+        title="Cerrar sesión"
+        message="¿Estás seguro de que quieres cerrar sesión?"
+        confirmLabel="Cerrar sesión"
+        destructive
+        onCancel={() => setConfirmLogout(false)}
+        onConfirm={() => {
+          setConfirmLogout(false);
+          void logout();
+        }}
+      />
+    </>
   );
 }
 

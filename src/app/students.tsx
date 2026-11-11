@@ -5,9 +5,11 @@ import { useStudents } from '../hooks/useStudents';
 import StudentList from '../components/StudentList';
 import { ErrorMessage, Loading } from '../components';
 import BackToHomeButton from '../components/BackToHomeButton';
+import { useTheme } from '../context/ThemeContext';
 
 export default function StudentsScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
   const { students, loading, error, refresh } = useStudents();
 
   const handleStudentPress = useCallback((student: { id: number }) => {
@@ -18,15 +20,23 @@ export default function StudentsScreen() {
   }, [router]);
 
   if (loading && students.length === 0) {
-    return <Loading message="Cargando estudiantes..." />;
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <Loading message="Cargando estudiantes..." />
+      </View>
+    );
   }
 
   if (error && students.length === 0) {
-    return <ErrorMessage error={error} onRetry={refresh} />;
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <ErrorMessage error={error} onRetry={refresh} />
+      </View>
+    );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <BackToHomeButton />
       {error ? <ErrorMessage error={error} onRetry={refresh} /> : null}
       <StudentList
@@ -43,6 +53,5 @@ export default function StudentsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F7FA',
   },
 });

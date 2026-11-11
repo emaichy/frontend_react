@@ -4,12 +4,12 @@
 
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ColorValue } from 'react-native';
 import { useCart } from '../../context/CartContext';
 import { useTheme } from '../../context/ThemeContext';
 
 export default function TabLayout() {
-  const { itemCount } = useCart();
+  const { studentCount } = useCart();
   const { colors } = useTheme();
 
   return (
@@ -29,6 +29,7 @@ export default function TabLayout() {
           fontSize: 12,
           fontWeight: '500',
         },
+        headerShown: false,
         headerStyle: {
           backgroundColor: colors.background,
         },
@@ -55,15 +56,6 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => (
             <TabIcon name="people" color={color} size={size} />
           ),
-          tabBarBadge: itemCount > 0 ? itemCount : undefined,
-          tabBarBadgeStyle: {
-            backgroundColor: '#EF4444',
-            color: '#FFFFFF',
-            fontSize: 10,
-            minWidth: 18,
-            height: 18,
-            borderRadius: 9,
-          },
         }}
       />
 
@@ -88,13 +80,33 @@ export default function TabLayout() {
           ),
         }}
       />
+
+      <Tabs.Screen
+        name="cart"
+        options={{
+          title: 'Carrito',
+          tabBarLabel: 'Carrito',
+          tabBarIcon: ({ color, size }) => (
+            <TabIcon name="cart" color={color} size={size} />
+          ),
+          tabBarBadge: studentCount > 0 ? studentCount : undefined,
+          tabBarBadgeStyle: {
+            backgroundColor: '#EF4444',
+            color: '#FFFFFF',
+            fontSize: 10,
+            minWidth: 18,
+            height: 18,
+            borderRadius: 9,
+          },
+        }}
+      />
     </Tabs>
   );
 }
 
 interface TabIconProps {
-  name: 'home' | 'people' | 'person' | 'settings';
-  color: string;
+  name: 'home' | 'people' | 'person' | 'settings' | 'cart';
+  color: ColorValue;
   size: number;
 }
 
@@ -104,6 +116,7 @@ function TabIcon({ name, color, size }: TabIconProps) {
     people: '👨‍🎓',
     person: '👤',
     settings: '⚙️',
+    cart: '🛒',
   };
 
   return (

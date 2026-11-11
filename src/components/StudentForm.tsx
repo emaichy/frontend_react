@@ -5,6 +5,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, TextInput, StyleSheet, TouchableOpacity, Text, Alert, Keyboard } from 'react-native';
 import { Student, StudentFormData } from '../types/student';
+import { useTheme } from '../context/ThemeContext';
 
 interface StudentFormProps {
   student?: Student;
@@ -13,6 +14,7 @@ interface StudentFormProps {
 }
 
 export default function StudentForm({ student, onSubmit, onCancel }: StudentFormProps) {
+  const { colors } = useTheme();
   const [nombre, setNombre] = useState(student?.nombre || '');
   const [apellido, setApellido] = useState(student?.apellido || '');
   const [matricula, setMatricula] = useState(student?.matricula || '');
@@ -71,28 +73,32 @@ export default function StudentForm({ student, onSubmit, onCancel }: StudentForm
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.card }]}>
       <TextInput
-        style={styles.input}
+        style={[styles.input, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
         placeholder="Nombre"
+        placeholderTextColor={colors.secondary}
         value={nombre}
         onChangeText={setNombre}
       />
       <TextInput
-        style={styles.input}
+        style={[styles.input, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
         placeholder="Apellido"
+        placeholderTextColor={colors.secondary}
         value={apellido}
         onChangeText={setApellido}
       />
       <TextInput
-        style={styles.input}
+        style={[styles.input, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
         placeholder="Matrícula"
+        placeholderTextColor={colors.secondary}
         value={matricula}
         onChangeText={setMatricula}
       />
       <TextInput
-        style={styles.input}
+        style={[styles.input, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
         placeholder="Email"
+        placeholderTextColor={colors.secondary}
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
@@ -100,8 +106,9 @@ export default function StudentForm({ student, onSubmit, onCancel }: StudentForm
       />
       {!student && (
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
           placeholder="Contraseña"
+          placeholderTextColor={colors.secondary}
           value={password}
           onChangeText={setPassword}
           secureTextEntry
@@ -110,8 +117,8 @@ export default function StudentForm({ student, onSubmit, onCancel }: StudentForm
       )}
 
       <View style={styles.buttons}>
-        <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
-          <Text style={styles.cancelText}>Cancelar</Text>
+        <TouchableOpacity style={[styles.cancelButton, { borderColor: colors.border }]} onPress={onCancel}>
+          <Text style={[styles.cancelText, { color: colors.secondary }]}>Cancelar</Text>
         </TouchableOpacity>
         <TouchableOpacity 
           style={[styles.submitButton, submitting && styles.submitButtonDisabled]} 
@@ -129,14 +136,12 @@ export default function StudentForm({ student, onSubmit, onCancel }: StudentForm
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#FFFFFF',
     padding: 20,
     borderRadius: 12,
     margin: 16,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#E5E7EB',
     borderRadius: 8,
     padding: 12,
     marginBottom: 16,
@@ -152,12 +157,10 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
     marginRight: 8,
     alignItems: 'center',
   },
   cancelText: {
-    color: '#6B7280',
     fontSize: 16,
     fontWeight: '600',
   },

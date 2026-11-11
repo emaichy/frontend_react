@@ -14,6 +14,7 @@ import {
 import StudentCard from './StudentCard';
 import SearchBar from './SearchBar';
 import { Student } from '../types/student';
+import { useTheme } from '../context/ThemeContext';
 
 interface StudentListProps {
   students: Student[];
@@ -21,6 +22,8 @@ interface StudentListProps {
   onRefresh?: () => void;
   refreshing?: boolean;
   onAddStudent?: () => void;
+  onAddToCart?: (student: Student) => void;
+  isStudentInCart?: (studentId: number) => boolean;
 }
 
 export default function StudentList({
@@ -29,7 +32,10 @@ export default function StudentList({
   onRefresh,
   refreshing = false,
   onAddStudent,
+  onAddToCart,
+  isStudentInCart,
 }: StudentListProps) {
+  const { colors } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredStudents = useMemo(() => {
@@ -47,11 +53,16 @@ export default function StudentList({
   }, []);
 
   const renderStudent = ({ item }: { item: Student }) => (
-    <StudentCard student={item} onPress={() => onStudentPress(item)} />
+    <StudentCard
+      student={item}
+      onPress={() => onStudentPress(item)}
+      onAddToCart={onAddToCart}
+      isInCart={isStudentInCart?.(item.id)}
+    />
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <SearchBar
         value={searchQuery}
         onChangeText={handleSearchChange}
@@ -64,7 +75,7 @@ export default function StudentList({
           onPress={onAddStudent}
           style={styles.addButton}
         >
-          <Text style={styles.addButtonText}>+ Agregar estudiante</Text>
+          <Text style={[styles.addButtonText, { color: colors.primary }]}>+ Agregar estudiante</Text>
         </TouchableOpacity>
       ) : null}
       <FlatList
@@ -83,7 +94,7 @@ export default function StudentList({
           ) : undefined
         }
         ListEmptyComponent={
-          <Text style={styles.emptyText}>
+          <Text style={[styles.emptyText, { color: colors.secondary }]}>
             {students.length === 0
               ? 'No hay estudiantes registrados'
               : 'No se encontraron estudiantes'}
@@ -97,7 +108,6 @@ export default function StudentList({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F7FA',
   },
   addButton: {
     alignSelf: 'flex-end',
@@ -106,7 +116,6 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   addButtonText: {
-    color: '#1D4ED8',
     fontSize: 15,
     fontWeight: '600',
   },
@@ -116,7 +125,6 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     textAlign: 'center',
-    color: '#6B7280',
     fontSize: 16,
     marginTop: 40,
   },

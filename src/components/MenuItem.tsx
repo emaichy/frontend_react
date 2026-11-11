@@ -7,12 +7,14 @@ import {
 import {
     MenuItemProps
 } from "../interfaces/menu.interface";
+import { useTheme } from "../context/ThemeContext";
 
 export default function MenuItem({
     title,
     icon,
     onPress
 }: MenuItemProps) {
+    const { colors } = useTheme();
 
     return (
         <TouchableOpacity
@@ -23,11 +25,11 @@ export default function MenuItem({
                 {icon}
             </Text>
 
-            <Text style={styles.title}>
+            <Text style={[styles.title, { color: colors.text }]}>
                 {title}
             </Text>
 
-            <Text style={styles.arrow}>
+            <Text style={[styles.arrow, { color: colors.secondary }]}>
                 ›
             </Text>
         </TouchableOpacity>

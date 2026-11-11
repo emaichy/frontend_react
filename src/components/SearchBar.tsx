@@ -4,6 +4,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { View, TextInput, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
 
 interface SearchBarProps {
   value: string;
@@ -20,6 +21,7 @@ export default function SearchBar({
   onClear,
   debounceMs = 300
 }: SearchBarProps) {
+  const { colors } = useTheme();
   const [localValue, setLocalValue] = useState(value);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -54,16 +56,17 @@ export default function SearchBar({
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.card, borderColor: colors.border }]}>
       <TextInput
-        style={styles.input}
+        style={[styles.input, { color: colors.text, backgroundColor: colors.card }]}
         placeholder={placeholder}
+        placeholderTextColor={colors.secondary}
         value={localValue}
         onChangeText={setLocalValue}
       />
       {localValue.length > 0 && (
         <TouchableOpacity style={styles.clearButton} onPress={handleClear}>
-          <Text style={styles.clearText}>X</Text>
+          <Text style={[styles.clearText, { color: colors.secondary }]}>X</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -74,12 +77,10 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
     marginHorizontal: 16,
     marginVertical: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
   },
   input: {
     flex: 1,
@@ -90,7 +91,6 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   clearText: {
-    color: '#6B7280',
     fontSize: 18,
     fontWeight: 'bold',
   },

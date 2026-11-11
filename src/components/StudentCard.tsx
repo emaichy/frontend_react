@@ -1,49 +1,79 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Student } from '../types/student';
+import { useTheme } from '../context/ThemeContext';
 
 interface StudentCardProps {
   student: Student;
   onPress?: (student: Student) => void;
+  onAddToCart?: (student: Student) => void;
+  isInCart?: boolean;
 }
 
-const StudentCard = React.memo(({ student, onPress }: StudentCardProps) => {
-  // Iniciales seguras con optional chaining y fallback
+const StudentCard = React.memo(({
+  student,
+  onPress,
+  onAddToCart,
+  isInCart = false,
+}: StudentCardProps) => {
+  const { colors, isDark } = useTheme();
   const inicialNombre = student?.nombre?.charAt(0) || '?';
   const inicialApellido = student?.apellido?.charAt(0) || '?';
 
   return (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() => onPress?.(student)}
-      activeOpacity={0.7}
-      accessible={true}
-      accessibilityLabel={`Estudiante ${student?.nombre || ''} ${student?.apellido || ''}`}
-      accessibilityHint="Toca para ver detalles del estudiante"
-    >
-      <View style={styles.header}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>
-            {inicialNombre}{inicialApellido}
-          </Text>
+    <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+      <TouchableOpacity
+        onPress={() => onPress?.(student)}
+        activeOpacity={0.7}
+        accessible={true}
+        accessibilityLabel={`Estudiante ${student?.nombre || ''} ${student?.apellido || ''}`}
+        accessibilityHint="Toca para ver detalles del estudiante"
+      >
+        <View style={styles.header}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>
+              {inicialNombre}{inicialApellido}
+            </Text>
+          </View>
+          <View style={styles.info}>
+            <Text style={[styles.name, { color: colors.text }]}>
+              {student?.nombre || 'Sin nombre'} {student?.apellido || ''}
+            </Text>
+            <Text style={[styles.matricula, { color: colors.secondary }]}>
+              Matrícula: {student?.matricula || 'N/A'}
+            </Text>
+          </View>
         </View>
-        <View style={styles.info}>
-          <Text style={styles.name}>
-            {student?.nombre || 'Sin nombre'} {student?.apellido || ''}
-          </Text>
-          <Text style={styles.matricula}>
-            Matrícula: {student?.matricula || 'N/A'}
-          </Text>
+
+        <View style={[styles.divider, { backgroundColor: colors.border }]} />
+
+        <View style={styles.footer}>
+          <Text style={[styles.label, { color: colors.secondary }]}>Email:</Text>
+          <Text style={[styles.email, { color: colors.primary }]}>{student?.email || 'Sin correo'}</Text>
         </View>
-      </View>
-      
-      <View style={styles.divider} />
-      
-      <View style={styles.footer}>
-        <Text style={styles.label}>Email:</Text>
-        <Text style={styles.email}>{student?.email || 'Sin correo'}</Text>
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+
+      {onAddToCart ? (
+        <TouchableOpacity
+          style={[
+            styles.cartButton,
+            { backgroundColor: isInCart ? (isDark ? '#14532D' : '#DCFCE7') : (isDark ? '#1E3A5F' : '#DBEAFE') },
+          ]}
+          onPress={() => onAddToCart(student)}
+          disabled={isInCart}
+          accessibilityRole="button"
+          accessibilityLabel={
+            isInCart
+              ? `${student.nombre} ya está en el carrito`
+              : `Agregar a ${student.nombre} al carrito`
+          }
+        >
+          <Text style={[styles.cartButtonText, { color: isDark ? '#BFDBFE' : '#1D4ED8' }]}>
+            {isInCart ? 'Agregado al carrito' : 'Agregar al carrito'}
+          </Text>
+        </TouchableOpacity>
+      ) : null}
+    </View>
   );
 });
 
@@ -53,7 +83,6 @@ export default StudentCard;
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -62,6 +91,18 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    borderWidth: 1,
+  },
+  cartButton: {
+    alignItems: 'center',
+    backgroundColor: '#DBEAFE',
+    borderRadius: 8,
+    marginTop: 14,
+    paddingVertical: 11,
+  },
+  cartButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   header: {
     flexDirection: 'row',
@@ -87,16 +128,13 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#111827',
     marginBottom: 4,
   },
   matricula: {
     fontSize: 14,
-    color: '#6B7280',
   },
   divider: {
     height: 1,
-    backgroundColor: '#E5E7EB',
     marginVertical: 12,
   },
   footer: {
@@ -105,11 +143,9 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    color: '#6B7280',
     marginRight: 6,
   },
   email: {
     fontSize: 14,
-    color: '#3B82F6',
   },
 });

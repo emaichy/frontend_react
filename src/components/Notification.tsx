@@ -3,8 +3,7 @@
  */
 
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
-import { useNotification } from '../context/NotificationContext';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 
 interface NotificationProps {
   notification: {

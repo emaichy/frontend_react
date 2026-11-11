@@ -8,6 +8,7 @@ import { useDispatch } from 'react-redux';
 import * as authApi from '../api/auth.api';
 import { storage } from '../utils/storage';
 import { setToken, setUser, logout as clearAuthState } from '../store/store';
+import { removeStorage } from '../utils/authStorage';
 import { handleApiError } from '../utils/errorHandler';
 import { ApiError, ErrorType } from '../types/errors';
 import { User } from '../types/user';
@@ -153,7 +154,15 @@ export function useAuth(): UseAuthReturn {
     } catch (error) {
       console.warn('No se pudo invalidar la sesión en el servidor:', error);
     } finally {
-      await storage.clearAll();
+      try {
+        await Promise.all([
+          storage.clearAll(),
+          removeStorage('user_token'),
+          removeStorage('user_info'),
+        ]);
+      } catch (error) {
+        console.error('No se pudo limpiar todo el almacenamiento de sesión:', error);
+      }
       dispatch(clearAuthState());
 
       if (isMounted.current) {

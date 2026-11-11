@@ -10,10 +10,12 @@ import { useApi } from '../../hooks/useApi';
 import { studentService } from '../../services/studentService';
 import { Loading, ErrorMessage } from '../../components';
 import BackToHomeButton from '../../components/BackToHomeButton';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function StudentDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { colors } = useTheme();
   const loadStudentData = useCallback(
     () => studentService.getById(Number(id)),
     [id]
@@ -78,7 +80,7 @@ export default function StudentDetailScreen() {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
       <Stack.Screen
         options={{
           title: `${student.nombre} ${student.apellido}`,
@@ -89,56 +91,56 @@ export default function StudentDetailScreen() {
         <BackToHomeButton />
       </View>
 
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}> 
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>
             {student.nombre.charAt(0)}{student.apellido.charAt(0)}
           </Text>
         </View>
-        <Text style={styles.name}>
+        <Text style={[styles.name, { color: colors.text }]}>
           {student.nombre} {student.apellido}
         </Text>
-        <Text style={styles.matricula}>Matrícula: {student.matricula}</Text>
+        <Text style={[styles.matricula, { color: colors.secondary }]}>Matrícula: {student.matricula}</Text>
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Información de contacto</Text>
+      <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}> 
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Información de contacto</Text>
 
-        <View style={styles.infoRow}>
+        <View style={[styles.infoRow, { borderBottomColor: colors.border }]}> 
           <Text style={styles.icon}>📧</Text>
           <View style={styles.infoContent}>
-            <Text style={styles.label}>Email</Text>
-            <Text style={styles.value}>{student.email}</Text>
+            <Text style={[styles.label, { color: colors.secondary }]}>Email</Text>
+            <Text style={[styles.value, { color: colors.text }]}>{student.email}</Text>
           </View>
         </View>
 
-        <View style={styles.infoRow}>
+        <View style={[styles.infoRow, { borderBottomColor: colors.border }]}> 
           <Text style={styles.icon}>🆔</Text>
           <View style={styles.infoContent}>
-            <Text style={styles.label}>ID</Text>
-            <Text style={styles.value}>{student.id}</Text>
+            <Text style={[styles.label, { color: colors.secondary }]}>ID</Text>
+            <Text style={[styles.value, { color: colors.text }]}>{student.id}</Text>
           </View>
         </View>
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Fechas</Text>
+      <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}> 
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Fechas</Text>
 
-        <View style={styles.infoRow}>
+        <View style={[styles.infoRow, { borderBottomColor: colors.border }]}> 
           <Text style={styles.icon}>📅</Text>
           <View style={styles.infoContent}>
-            <Text style={styles.label}>Creado</Text>
-            <Text style={styles.value}>
+            <Text style={[styles.label, { color: colors.secondary }]}>Creado</Text>
+            <Text style={[styles.value, { color: colors.text }]}>
               {formatDate(student.createdAt ?? student.created_at)}
             </Text>
           </View>
         </View>
 
-        <View style={styles.infoRow}>
+        <View style={[styles.infoRow, { borderBottomColor: colors.border }]}> 
           <Text style={styles.icon}>🔄</Text>
           <View style={styles.infoContent}>
-            <Text style={styles.label}>Actualizado</Text>
-            <Text style={styles.value}>
+            <Text style={[styles.label, { color: colors.secondary }]}>Actualizado</Text>
+            <Text style={[styles.value, { color: colors.text }]}>
               {formatDate(student.updatedAt ?? student.updated_at)}
             </Text>
           </View>
@@ -147,12 +149,12 @@ export default function StudentDetailScreen() {
 
       <View style={styles.actions}>
         <Text
-          style={styles.editButton}
+          style={[styles.editButton, { backgroundColor: colors.primary, color: '#FFFFFF' }]}
           onPress={() => router.push(`/student/edit/${student.id}`)}
         >
           Editar estudiante
         </Text>
-        <Text style={styles.deleteButton} onPress={handleDelete}>
+        <Text style={[styles.deleteButton, { backgroundColor: '#EF4444', color: '#FFFFFF' }]} onPress={handleDelete}>
           🗑️ Eliminar estudiante
         </Text>
       </View>
@@ -163,14 +165,11 @@ export default function StudentDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F7FA',
   },
   header: {
-    backgroundColor: '#FFFFFF',
     padding: 24,
     alignItems: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
   },
   avatar: {
     width: 80,
@@ -189,22 +188,20 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#111827',
     marginBottom: 8,
   },
   matricula: {
     fontSize: 16,
-    color: '#6B7280',
   },
   section: {
-    backgroundColor: '#FFFFFF',
     marginTop: 16,
     padding: 16,
+    borderWidth: 1,
+    borderRadius: 12,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#111827',
     marginBottom: 16,
   },
   infoRow: {
@@ -212,7 +209,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
   },
   icon: {
     fontSize: 24,

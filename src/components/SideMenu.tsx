@@ -10,6 +10,7 @@ import { SideMenuProps } from "../interfaces/menu.interface";
 import { RootState } from "../store/store";
 import MenuItem from "./MenuItem";
 import { getUserDisplayName } from "../utils/userDisplay";
+import { useTheme } from "../context/ThemeContext";
 
 export default function SideMenu({
     visible,
@@ -21,6 +22,7 @@ export default function SideMenu({
 
     // Obtener usuario del estado global de Redux
     const user = useSelector((state: RootState) => state.auth.user);
+    const { colors } = useTheme();
 
     if (!visible) {
         return null;
@@ -35,10 +37,10 @@ export default function SideMenu({
         <View style={styles.overlay}>
 
             {/* MENÚ LATERAL */}
-            <View style={styles.menu}>
+        <View style={[styles.menu, { backgroundColor: colors.background }]}>
 
                 {/* INFORMACIÓN DEL USUARIO */}
-                <View style={styles.userContainer}>
+                <View style={[styles.userContainer, { borderBottomColor: colors.border }]}>
 
                     <View style={styles.avatar}>
                         <Text style={styles.avatarText}>
@@ -46,11 +48,11 @@ export default function SideMenu({
                         </Text>
                     </View>
 
-                    <Text style={styles.name}>
+                    <Text style={[styles.name, { color: colors.text }]}>
                         {displayName}
                     </Text>
 
-                    <Text style={styles.email}>
+                    <Text style={[styles.email, { color: colors.secondary }]}>
                         {user?.email || "Sin correo"}
                     </Text>
 
@@ -82,7 +84,7 @@ export default function SideMenu({
 
                 {/* CERRAR SESIÓN */}
                 <TouchableOpacity
-                    style={styles.logout}
+                    style={[styles.logout, { borderTopColor: colors.border }]}
                     onPress={onLogout}
                 >
 
@@ -120,7 +122,6 @@ const styles = StyleSheet.create({
     menu: {
         width: "80%",
         height: "100%",
-        backgroundColor: "#FFFFFF",
         paddingTop: 50,
         paddingBottom: 20,
         elevation: 10,
@@ -136,7 +137,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingBottom: 25,
         borderBottomWidth: 1,
-        borderBottomColor: "#EEEEEE",
         alignItems: "center",
     },
     avatar: {
@@ -156,12 +156,10 @@ const styles = StyleSheet.create({
     name: {
         fontSize: 19,
         fontWeight: "bold",
-        color: "#111827",
         marginBottom: 4,
     },
     email: {
         fontSize: 14,
-        color: "#6B7280",
     },
     spacer: {
         flex: 1,
@@ -172,7 +170,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingVertical: 18,
         borderTopWidth: 1,
-        borderTopColor: "#EEEEEE",
     },
     logoutIcon: {
         fontSize: 22,

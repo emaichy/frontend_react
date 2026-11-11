@@ -65,7 +65,7 @@ export default function RegisterScreen() {
 
     if (success) {
       showSuccess('Éxito', 'Cuenta creada correctamente');
-      router.replace('/(tabs)');
+      router.replace('/home');
     }
   };
 

@@ -27,7 +27,7 @@ export default function LoginScreen() {
   const handleLogin = async (email: string, password: string) => {
     const success = await login(email, password);
     if (success) {
-      router.replace('/(tabs)');
+      router.replace('/home');
     } else {
       showError('Error', error?.message || 'No se pudo iniciar sesión. Verifique sus credenciales.');
     }
