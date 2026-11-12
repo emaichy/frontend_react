@@ -3,14 +3,14 @@
  */
 
 import React from 'react';
-import { 
-  View, 
-  StyleSheet, 
-  Keyboard, 
-  TouchableWithoutFeedback, 
-  KeyboardAvoidingView, 
-  Platform, 
-  ScrollView 
+import {
+  View,
+  StyleSheet,
+  Keyboard,
+  TouchableWithoutFeedback,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../hooks/useAuth';
@@ -25,11 +25,14 @@ export default function LoginScreen() {
   const { colors } = useTheme();
 
   const handleLogin = async (email: string, password: string) => {
-    const success = await login(email, password);
-    if (success) {
+    const result = await login(email, password);
+    if (result.ok) {
       router.replace('/home');
     } else {
-      showError('Error', error?.message || 'No se pudo iniciar sesión. Verifique sus credenciales.');
+      showError(
+        'Error',
+        result.error || 'No se pudo iniciar sesión. Verifique sus credenciales.'
+      );
     }
   };
 
@@ -40,14 +43,14 @@ export default function LoginScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardView}
         >
-          <ScrollView 
+          <ScrollView
             contentContainerStyle={styles.scrollContent}
             keyboardShouldPersistTaps="handled"
           >
             <LoginForm
               onLogin={handleLogin}
               loading={loading}
-              error={error?.message || ''}
+              error={error?.message ?? ''}
             />
           </ScrollView>
         </KeyboardAvoidingView>

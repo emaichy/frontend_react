@@ -28,9 +28,9 @@ export const authApi = {
   },
 
   getProfile: async (): Promise<User> => {
-    const response = await apiClient.get<{ user: User }>('/auth/me');
-    return response.data.user;
-  },
+  const response = await apiClient.get<{ data?: User; user?: User }>('/auth/me');
+  return (response.data.data ?? response.data.user)!;
+},
 
   getCurrentUser: async (): Promise<User> => authApi.getProfile(),
 

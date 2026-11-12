@@ -21,9 +21,14 @@ interface UseAuthState {
   isAuthenticated: boolean;
 }
 
+export interface AuthActionResult {
+  ok: boolean;
+  error?: string;
+}
+
 interface UseAuthReturn extends UseAuthState {
-  login: (email: string, password: string) => Promise<boolean>;
-  register: (data: RegisterData) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<AuthActionResult>;
+  register: (data: RegisterData) => Promise<AuthActionResult>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
   clearError: () => void;
@@ -56,6 +61,7 @@ export function useAuth(): UseAuthReturn {
       }
 
       const user = await authApi.getCurrentUser();
+      dispatch(setToken(token));
       dispatch(setUser(user));
 
       if (isMounted.current) {
@@ -78,7 +84,7 @@ export function useAuth(): UseAuthReturn {
     }
   }, [dispatch]);
 
-  const login = useCallback(async (email: string, password: string): Promise<boolean> => {
+  const login = useCallback(async (email: string, password: string): Promise<AuthActionResult> => {
     if (isMounted.current) {
       setState((prev) => ({ ...prev, loading: true, error: null }));
     }
@@ -108,7 +114,7 @@ export function useAuth(): UseAuthReturn {
         });
       }
 
-      return true;
+      return { ok: true };
     } catch (error) {
       const apiError = handleApiError(error);
       if (isMounted.current) {
@@ -119,11 +125,11 @@ export function useAuth(): UseAuthReturn {
           isAuthenticated: false,
         }));
       }
-      return false;
+      return { ok: false, error: apiError.message };
     }
   }, [dispatch]);
 
-  const register = useCallback(async (data: RegisterData): Promise<boolean> => {
+  const register = useCallback(async (data: RegisterData): Promise<AuthActionResult> => {
     if (isMounted.current) {
       setState((prev) => ({ ...prev, loading: true, error: null }));
     }
@@ -140,7 +146,7 @@ export function useAuth(): UseAuthReturn {
           error: apiError,
         }));
       }
-      return false;
+      return { ok: false, error: apiError.message };
     }
   }, [login]);
 
@@ -185,7 +191,6 @@ export function useAuth(): UseAuthReturn {
 
   useEffect(() => {
     isMounted.current = true;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     void checkAuth();
 
     return () => {
