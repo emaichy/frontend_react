@@ -60,7 +60,7 @@ export default function RootLayout() {
                         <CartProvider>
                             <AuthInitializer>
                                 <View style={{ flex: 1 }}>
-                                    <Stack>
+                                    <Stack screenOptions={{ headerShown: false }}>
                                         <Stack.Screen
                                             name="index"
                                             options={{ headerShown: false }}

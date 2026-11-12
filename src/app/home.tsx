@@ -20,7 +20,7 @@ export default function HomeScreen() {
     const [menuOpen, setMenuOpen] = useState(false);
     const [confirmLogout, setConfirmLogout] = useState(false);
     const { logout } = useAuth();
-    const { colors } = useTheme();
+    const { colors, isDark, toggleTheme } = useTheme();
 
     // Leer usuario dinámico desde Redux
     const user = useSelector((state: RootState) => state.auth.user);
@@ -56,6 +56,16 @@ export default function HomeScreen() {
                     Nos alegra verte nuevamente.
                 </Text>
                 <Text style={[styles.accountEmail, { color: colors.secondary }]}>{user?.email || "Correo no disponible"}</Text>
+                <TouchableOpacity
+                    style={[styles.themeButton, { backgroundColor: colors.card, borderColor: colors.border }]}
+                    onPress={toggleTheme}
+                    accessibilityRole="button"
+                    accessibilityLabel={isDark ? "Activar modo claro" : "Activar modo oscuro"}
+                >
+                    <Text style={[styles.themeButtonText, { color: colors.text }]}>
+                        {isDark ? "Cambiar a modo claro ☀️" : "Activar modo oscuro 🌙"}
+                    </Text>
+                </TouchableOpacity>
                 <TouchableOpacity
                     style={styles.tabsButton}
                     onPress={() => router.push("/(tabs)")}
@@ -136,9 +146,21 @@ const styles = StyleSheet.create({
         marginTop: 8,
         fontSize: 14,
     },
+    themeButton: {
+        alignSelf: "flex-start",
+        marginTop: 20,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        borderRadius: 10,
+        borderWidth: 1,
+    },
+    themeButtonText: {
+        fontSize: 15,
+        fontWeight: "600",
+    },
     tabsButton: {
         alignSelf: "flex-start",
-        marginTop: 24,
+        marginTop: 16,
         paddingHorizontal: 18,
         paddingVertical: 12,
         borderRadius: 10,

@@ -7,11 +7,13 @@ import MenuItem from "../components/MenuItem"; // Reutilizamos tu componente Men
 import { RootState, logout } from "../store/store";
 import { removeStorage } from "../utils/authStorage";
 import { getUserDisplayName } from "../utils/userDisplay";
+import { useTheme } from "../context/ThemeContext";
 
 export default function ProfileScreen() {
     const router = useRouter();
     const dispatch = useDispatch();
     const user = useSelector((state: RootState) => state.auth.user);
+    const { colors, theme, toggleTheme } = useTheme();
 
     const displayName = getUserDisplayName(user);
 
@@ -33,13 +35,13 @@ export default function ProfileScreen() {
     };
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
             {/* Header con botón regresar */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={handleGoBack}>
-                    <Text style={styles.back}>←</Text>
+                    <Text style={[styles.back, { color: colors.text }]}>←</Text>
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Mi Perfil</Text>
+                <Text style={[styles.headerTitle, { color: colors.text }]}>Mi Perfil</Text>
             </View>
 
             {/* Datos del Alumno */}
@@ -47,15 +49,27 @@ export default function ProfileScreen() {
                 <View style={styles.avatar}>
                     <Text style={styles.avatarText}>{initial}</Text>
                 </View>
-                <Text style={styles.name}>{displayName}</Text>
-                <Text style={styles.email}>{user?.email || "Sin correo"}</Text>
+                <Text style={[styles.name, { color: colors.text }]}>{displayName}</Text>
+                <Text style={[styles.email, { color: colors.secondary }]}>{user?.email || "Sin correo"}</Text>
                 {user?.matricula ? (
-                    <Text style={styles.email}>Matrícula: {user.matricula}</Text>
+                    <Text style={[styles.email, { color: colors.secondary }]}>Matrícula: {user.matricula}</Text>
                 ) : null}
                 {user?.matricula ? (
-                    <Text style={styles.matricula}>Matrícula: {user.matricula}</Text>
+                    <Text style={[styles.matricula, { color: colors.secondary }]}>Matrícula: {user.matricula}</Text>
                 ) : null}
             </View>
+
+            <TouchableOpacity
+                style={[styles.themeToggle, { backgroundColor: colors.card, borderColor: colors.border }]}
+                onPress={toggleTheme}
+                accessibilityRole="button"
+                accessibilityLabel={theme === "dark" ? "Activar modo claro" : "Activar modo oscuro"}
+            >
+                <Text style={[styles.themeToggleLabel, { color: colors.text }]}>Modo oscuro</Text>
+                <Text style={[styles.themeToggleValue, { color: colors.primary }]}>
+                    {theme === "dark" ? "Activado 🌙" : "Desactivado ☀️"}
+                </Text>
+            </TouchableOpacity>
 
             {/* Opciones con MenuItem */}
             <View style={styles.options}>
@@ -82,7 +96,7 @@ export default function ProfileScreen() {
 
             {/* Cerrar sesión */}
             <TouchableOpacity
-                style={styles.logout}
+                style={[styles.logout, { borderTopColor: colors.border }]}
                 onPress={handleLogout}
             >
                 <Text style={styles.logoutIcon}>🚪</Text>
@@ -96,7 +110,6 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 20,
-        backgroundColor: "#18181b",
     },
     header: {
         flexDirection: "row",
@@ -107,12 +120,10 @@ const styles = StyleSheet.create({
     back: {
         fontSize: 24,
         marginRight: 15,
-        color: "#ffffff",
     },
     headerTitle: {
         fontSize: 24,
         fontWeight: "bold",
-        color: "#ffffff",
     },
     profile: {
         alignItems: "center",
@@ -135,17 +146,31 @@ const styles = StyleSheet.create({
     name: {
         fontSize: 22,
         fontWeight: "bold",
-        color: "#ffffff",
         marginBottom: 4,
     },
     email: {
         fontSize: 15,
-        color: "#a1a1aa",
     },
     matricula: {
         fontSize: 14,
-        color: "#71717a",
         marginTop: 4,
+    },
+    themeToggle: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        padding: 16,
+        borderRadius: 12,
+        borderWidth: 1,
+        marginBottom: 12,
+    },
+    themeToggleLabel: {
+        fontSize: 16,
+        fontWeight: "500",
+    },
+    themeToggleValue: {
+        fontSize: 15,
+        fontWeight: "600",
     },
     options: {
         marginTop: 10,
@@ -158,7 +183,6 @@ const styles = StyleSheet.create({
         alignItems: "center",
         paddingVertical: 18,
         borderTopWidth: 1,
-        borderTopColor: "#27272a",
     },
     logoutIcon: {
         fontSize: 22,
