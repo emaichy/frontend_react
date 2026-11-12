@@ -55,7 +55,7 @@ export default function RegisterScreen() {
       return;
     }
 
-    const success = await register({
+    const result = await register({
       nombre: form.nombre.trim(),
       apellido: form.apellido.trim(),
       matricula: form.matricula.trim(),
@@ -63,9 +63,11 @@ export default function RegisterScreen() {
       password: form.password,
     });
 
-    if (success) {
+    if (result.ok) {
       showSuccess('Éxito', 'Cuenta creada correctamente');
-      router.replace('/home');
+      router.replace('/login');
+    } else {
+      showError('Error', result.error || 'No se pudo crear la cuenta.');
     }
   };
 

@@ -1,19 +1,22 @@
 import React, { useState } from "react";
 import {
-    Button,
     Pressable,
     StyleSheet,
     Text,
     TextInput,
+    TouchableOpacity,
     View
 } from "react-native";
 import { LoginFormProps } from "../interfaces/auth.interface";
+import { useTheme } from "../context/ThemeContext";
 
 export default function LoginForm({
     onLogin,
+    onRegister,
     loading,
     error
 }: LoginFormProps) {
+    const { colors } = useTheme();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
@@ -53,17 +56,19 @@ export default function LoginForm({
     };
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Iniciar sesión</Text>
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
+            <Text style={[styles.title, { color: colors.text }]}>Iniciar sesión</Text>
 
             {/* CORREO ELECTRÓNICO */}
-            <Text style={styles.label}>Correo Electrónico</Text>
+            <Text style={[styles.label, { color: colors.text }]}>Correo Electrónico</Text>
             <TextInput
                 style={[
                     styles.input,
+                    { backgroundColor: colors.card, color: colors.text, borderColor: colors.border },
                     emailError !== "" ? styles.inputError : null
                 ]}
                 placeholder="Ingresa tu correo electrónico"
+                placeholderTextColor={colors.secondary}
                 value={email}
                 onChangeText={handleEmailChange}
                 autoCapitalize="none"
@@ -76,14 +81,16 @@ export default function LoginForm({
             )}
 
             {/* CONTRASEÑA */}
-            <Text style={styles.label}>Contraseña</Text>
+            <Text style={[styles.label, { color: colors.text }]}>Contraseña</Text>
             <View style={[
                 styles.passwordContainer,
+                { backgroundColor: colors.card, borderColor: colors.border },
                 passwordError !== "" ? styles.inputError : null
             ]}>
                 <TextInput
-                    style={styles.passwordInput}
+                    style={[styles.passwordInput, { color: colors.text }]}
                     placeholder="Ingresa tu contraseña"
+                    placeholderTextColor={colors.secondary}
                     value={password}
                     onChangeText={handlePasswordChange}
                     secureTextEntry={!showPassword}
@@ -97,7 +104,7 @@ export default function LoginForm({
                     accessibilityRole="button"
                     accessibilityLabel={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                 >
-                    <Text style={styles.showButtonText}>
+                    <Text style={[styles.showButtonText, { color: colors.primary }]}>
                         {showPassword ? "Ocultar" : "Mostrar"}
                     </Text>
                 </Pressable>
@@ -115,12 +122,27 @@ export default function LoginForm({
 
             {/* BOTÓN SUBMIT */}
             <View style={styles.buttonContainer}>
-                <Button
-                    title={loading ? "Validando..." : "Iniciar sesión"}
+                <TouchableOpacity
+                    style={[styles.button, { backgroundColor: colors.primary }]}
                     onPress={handleLogin}
                     disabled={loading}
-                />
+                    accessibilityRole="button"
+                >
+                    <Text style={styles.buttonText}>
+                        {loading ? "Validando..." : "Iniciar sesión"}
+                    </Text>
+                </TouchableOpacity>
             </View>
+            <Pressable
+                onPress={onRegister}
+                style={styles.registerLink}
+                disabled={loading}
+                accessibilityRole="button"
+            >
+                <Text style={[styles.registerLinkText, { color: colors.primary }]}>
+                    ¿No tienes cuenta? Regístrate
+                </Text>
+            </Pressable>
         </View>
     );
 }
@@ -135,30 +157,24 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
         textAlign: "center",
         marginBottom: 30,
-        color: "#111827",
     },
     label: {
         fontSize: 14,
         fontWeight: "600",
         marginBottom: 6,
-        color: "#374151",
     },
     input: {
         borderWidth: 1,
-        borderColor: "#D1D5DB",
         borderRadius: 8,
         padding: 12,
         marginBottom: 4,
-        backgroundColor: "#FFFFFF",
     },
     passwordContainer: {
         flexDirection: "row",
         alignItems: "center",
         borderWidth: 1,
-        borderColor: "#D1D5DB",
         borderRadius: 8,
         marginBottom: 4,
-        backgroundColor: "#FFFFFF",
     },
     passwordInput: {
         flex: 1,
@@ -169,9 +185,18 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
     },
     showButtonText: {
-        color: "#3B82F6",
         fontWeight: "600",
         fontSize: 14,
+    },
+    button: {
+        padding: 14,
+        borderRadius: 8,
+        alignItems: "center",
+    },
+    buttonText: {
+        color: "#FFFFFF",
+        fontSize: 16,
+        fontWeight: "600",
     },
     inputError: {
         borderColor: "#EF4444",
@@ -188,5 +213,13 @@ const styles = StyleSheet.create({
     },
     buttonContainer: {
         marginTop: 12,
+    },
+    registerLink: {
+        alignItems: "center",
+        paddingVertical: 16,
+    },
+    registerLinkText: {
+        fontSize: 14,
+        fontWeight: "600",
     },
 });

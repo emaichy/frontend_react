@@ -49,6 +49,7 @@ export default function LoginScreen() {
           >
             <LoginForm
               onLogin={handleLogin}
+              onRegister={() => router.push('/register')}
               loading={loading}
               error={error?.message ?? ''}
             />

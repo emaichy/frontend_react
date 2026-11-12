@@ -6,6 +6,8 @@ import { Provider, useDispatch } from "react-redux";
 
 import { setToken, setUser, store } from "../store/store";
 import { getStorage } from "../utils/authStorage";
+import { storage } from "../utils/storage";
+import { getCurrentUser } from "../api/auth.api";
 import ErrorBoundary from "../components/ErrorBoundary";
 import { CartProvider } from "../context/CartContext";
 import { NotificationProvider } from "../context/NotificationContext";
@@ -22,11 +24,24 @@ function AuthInitializer({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         const restoreSession = async () => {
             try {
-                const token = await getStorage("user_token");
+                const token = await storage.getToken();
+                if (token) {
+                    try {
+                        const currentUser = await getCurrentUser();
+                        dispatch(setToken((await storage.getToken()) ?? token));
+                        dispatch(setUser(currentUser));
+                        return;
+                    } catch (error) {
+                        console.error("Error al validar la sesión guardada:", error);
+                    }
+                }
+
+                // Mantiene compatibilidad con sesiones guardadas por la autenticación anterior.
+                const legacyToken = await getStorage("user_token");
                 const savedUser = await getStorage("user_info");
 
-                if (token && savedUser) {
-                    dispatch(setToken(token));
+                if (legacyToken && savedUser) {
+                    dispatch(setToken(legacyToken));
                     dispatch(setUser(JSON.parse(savedUser)));
                 }
             } catch (error) {

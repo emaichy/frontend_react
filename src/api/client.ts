@@ -35,7 +35,7 @@ const processQueue = (error: unknown, token: string | null = null) => {
 const refreshAccessToken = async (): Promise<string | null> => {
   try {
     const refreshToken = await storage.getRefreshToken();
-    
+
     if (!refreshToken) {
       return null;
     }
@@ -53,12 +53,12 @@ const refreshAccessToken = async (): Promise<string | null> => {
     if (!accessToken) {
       throw new Error('La API no devolvió un token de acceso al renovar la sesión.');
     }
-    
+
     await storage.saveToken(accessToken);
     if (newRefreshToken) {
       await storage.saveRefreshToken(newRefreshToken);
     }
-    
+
     return accessToken;
   } catch (error) {
     console.error('Error refrescando token:', error);
@@ -96,13 +96,19 @@ apiClient.interceptors.response.use(
       return Promise.reject(handleApiError(error));
     }
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    const isAuthRoute =
+      originalRequest.url?.includes('/auth/login') ||
+      originalRequest.url?.includes('/auth/register');
+
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthRoute) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
           .then((token) => {
-            originalRequest.headers.Authorization = `Bearer ${token}`;
+            if (originalRequest.headers) {
+              originalRequest.headers.Authorization = `Bearer ${token}`;
+            }
             return apiClient(originalRequest);
           })
           .catch((err) => Promise.reject(err));
@@ -113,9 +119,11 @@ apiClient.interceptors.response.use(
 
       try {
         const newToken = await refreshAccessToken();
-        
+
         if (newToken) {
-          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          if (originalRequest.headers) {
+            originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          }
           processQueue(null, newToken);
           return apiClient(originalRequest);
         } else {
@@ -134,3 +142,4 @@ apiClient.interceptors.response.use(
     return Promise.reject(handleApiError(error));
   }
 );
+export default apiClient;

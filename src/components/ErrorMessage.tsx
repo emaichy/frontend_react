@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { ApiError, ErrorType } from '../types/errors';
+import { useTheme } from '../context/ThemeContext';
 
 interface ErrorMessageProps {
   error: ApiError | string | null;
@@ -15,6 +16,8 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
   onDismiss,
   fullScreen = false
 }) => {
+  const { colors } = useTheme();
+
   if (!error) return null;
 
   const message = typeof error === 'string'
@@ -48,7 +51,11 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
 
   return (
     <View
-      style={[styles.container, fullScreen && styles.fullScreenContainer]}
+      style={[
+        styles.container,
+        { backgroundColor: colors.card, borderLeftColor: colors.error },
+        fullScreen && styles.fullScreenContainer,
+      ]}
       accessibilityRole="alert"
     >
       <View style={[styles.content, fullScreen && styles.fullScreenContent]}>
@@ -61,8 +68,14 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
         </Text>
 
         <View style={fullScreen ? styles.textCenter : styles.textFlex}>
-          {fullScreen && <Text style={styles.title}>¡Oops!</Text>}
-          <Text style={[styles.message, fullScreen && styles.fullScreenMessage]}>
+          {fullScreen && <Text style={[styles.title, { color: colors.text }]}>¡Oops!</Text>}
+          <Text
+            style={[
+              styles.message,
+              fullScreen && styles.fullScreenMessage,
+              { color: colors.secondary },
+            ]}
+          >
             {message}
           </Text>
         </View>
@@ -71,7 +84,7 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
       <View style={[styles.actions, fullScreen && styles.fullScreenActions]}>
         {canRetry && (
           <TouchableOpacity
-            style={styles.retryButton}
+            style={[styles.retryButton, { backgroundColor: colors.primary }]}
             onPress={onRetry}
             accessibilityRole="button"
             accessibilityHint="Reintenta realizar la operación fallida"
@@ -82,12 +95,12 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
         
         {onDismiss && (
           <TouchableOpacity
-            style={styles.dismissButton}
+            style={[styles.dismissButton, { backgroundColor: colors.background }]}
             onPress={onDismiss}
             accessibilityRole="button"
             accessibilityHint="Descarta este mensaje de error"
           >
-            <Text style={styles.dismissText}>Cerrar</Text>
+            <Text style={[styles.dismissText, { color: colors.text }]}>Cerrar</Text>
           </TouchableOpacity>
         )}
       </View>

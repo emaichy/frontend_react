@@ -136,7 +136,14 @@ export function useAuth(): UseAuthReturn {
 
     try {
       await authApi.register(data);
-      return await login(data.email, data.password);
+      if (isMounted.current) {
+        setState((prev) => ({
+          ...prev,
+          loading: false,
+          error: null,
+        }));
+      }
+      return { ok: true };
     } catch (error) {
       const apiError = handleApiError(error);
       if (isMounted.current) {
@@ -148,7 +155,7 @@ export function useAuth(): UseAuthReturn {
       }
       return { ok: false, error: apiError.message };
     }
-  }, [login]);
+  }, []);
 
   const logout = useCallback(async () => {
     try {

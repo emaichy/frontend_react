@@ -1,28 +1,26 @@
-import { useRouter } from "expo-router";
-import { StyleSheet, View } from "react-native";
+/**
+ * Punto de entrada: dirige a la pantalla correspondiente según la sesión restaurada.
+ */
 
-import LoginForm from "../components/LoginFrom";
-import { useLogin } from "../hooks/useLogin";
-import { LoginRequest } from "../interfaces/auth.interface";
+import React, { useEffect } from 'react';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import { useSelector } from 'react-redux';
+import { useTheme } from '../context/ThemeContext';
+import type { RootState } from '../store/store';
 
-export default function LoginScreen() {
+export default function IndexScreen() {
   const router = useRouter();
-  const { login, loading, error } = useLogin();
+  const { colors } = useTheme();
+  const { token, user } = useSelector((state: RootState) => state.auth);
 
-  const handleLogin = async (data: LoginRequest) => {
-    const success = await login(data.email, data.password);
-    if (success) {
-      router.replace("/home");
-    }
-  };
+  useEffect(() => {
+    router.replace(token && user ? '/(tabs)' : '/login');
+  }, [router, token, user]);
 
   return (
-    <View style={styles.container}>
-      <LoginForm
-        onLogin={(email, password) => handleLogin({ email, password })}
-        loading={loading}
-        error={error}
-      />
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <ActivityIndicator size="large" color={colors.primary} />
     </View>
   );
 }
@@ -30,8 +28,7 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

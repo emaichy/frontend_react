@@ -13,6 +13,7 @@ import BackToHomeButton from '../../components/BackToHomeButton';
 import { useCart } from '../../context/CartContext';
 import { useNotification } from '../../context/NotificationContext';
 import { useTheme } from '../../context/ThemeContext';
+import type { Student } from '../../types/student';
 
 export default function StudentsScreen() {
   const router = useRouter();
@@ -20,7 +21,7 @@ export default function StudentsScreen() {
   const { addStudent, hasStudent } = useCart();
   const { showSuccess } = useNotification();
   const { colors } = useTheme();
-  const handleStudentPress = useCallback((student: { id: number }) => {
+  const handleStudentPress = useCallback((student: Student) => {
     router.push(`/student/${student.id}`);
   }, [router]);
   const handleAddStudent = useCallback(() => {

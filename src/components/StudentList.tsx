@@ -52,14 +52,14 @@ export default function StudentList({
     setSearchQuery(query);
   }, []);
 
-  const renderStudent = ({ item }: { item: Student }) => (
+  const renderStudent = useCallback(({ item }: { item: Student }) => (
     <StudentCard
       student={item}
-      onPress={() => onStudentPress(item)}
+      onPress={onStudentPress}
       onAddToCart={onAddToCart}
       isInCart={isStudentInCart?.(item.id)}
     />
-  );
+  ), [isStudentInCart, onAddToCart, onStudentPress]);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
