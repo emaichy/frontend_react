@@ -12,6 +12,7 @@ import { removeStorage } from '../utils/authStorage';
 import { handleApiError } from '../utils/errorHandler';
 import { ApiError, ErrorType } from '../types/errors';
 import { User } from '../types/user';
+import type { ProfileUpdate } from '../types/user';
 import { RegisterData } from '../types/auth';
 
 interface UseAuthState {
@@ -29,6 +30,7 @@ export interface AuthActionResult {
 interface UseAuthReturn extends UseAuthState {
   login: (email: string, password: string) => Promise<AuthActionResult>;
   register: (data: RegisterData) => Promise<AuthActionResult>;
+  updateProfile: (data: ProfileUpdate) => Promise<AuthActionResult>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
   clearError: () => void;
@@ -157,6 +159,27 @@ export function useAuth(): UseAuthReturn {
     }
   }, []);
 
+  const updateProfile = useCallback(async (data: ProfileUpdate): Promise<AuthActionResult> => {
+    try {
+      const user = await authApi.updateProfile(data);
+      dispatch(setUser(user));
+      if (isMounted.current) {
+        setState((prev) => ({
+          ...prev,
+          user,
+          error: null,
+        }));
+      }
+      return { ok: true };
+    } catch (error) {
+      const apiError = handleApiError(error);
+      if (isMounted.current) {
+        setState((prev) => ({ ...prev, error: apiError }));
+      }
+      return { ok: false, error: apiError.message };
+    }
+  }, [dispatch]);
+
   const logout = useCallback(async () => {
     try {
       const accessToken = await storage.getToken();
@@ -197,10 +220,16 @@ export function useAuth(): UseAuthReturn {
   }, []);
 
   useEffect(() => {
+    let active = true;
     isMounted.current = true;
-    void checkAuth();
+    void Promise.resolve().then(() => {
+      if (active) {
+        return checkAuth();
+      }
+    });
 
     return () => {
+      active = false;
       isMounted.current = false;
     };
   }, [checkAuth]);
@@ -209,6 +238,7 @@ export function useAuth(): UseAuthReturn {
     ...state,
     login,
     register,
+    updateProfile,
     logout,
     checkAuth,
     clearError,

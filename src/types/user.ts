@@ -7,7 +7,17 @@ export interface User {
   email: string;
   nombre?: string;
   apellido?: string;
+  apellido_paterno?: string;
+  apellido_materno?: string | null;
   matricula?: string;
+  rol_nombre?: string;
+}
+
+export interface ProfileUpdate {
+  nombre: string;
+  apellido?: string;
+  apellido_paterno?: string;
+  apellido_materno?: string | null;
 }
 
 export interface UserMeResponse {

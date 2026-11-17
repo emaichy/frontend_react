@@ -2,6 +2,7 @@ import { create } from 'axios';
 import { apiClient } from './client';
 import { API_URL } from '../constants/api';
 import { LoginCredentials, RegisterData, AuthResponse, TokenResponse, User } from '../types/auth';
+import type { ProfileUpdate } from '../types/user';
 import { ApiError, ErrorType } from '../types/errors';
 
 const logoutClient = create({
@@ -28,11 +29,24 @@ export const authApi = {
   },
 
   getProfile: async (): Promise<User> => {
-  const response = await apiClient.get<{ data?: User; user?: User }>('/auth/me');
-  return (response.data.data ?? response.data.user)!;
-},
+    const response = await apiClient.get<{ data?: User; user?: User }>('/auth/me');
+    const user = response.data.data ?? response.data.user;
+    if (!user) {
+      throw new ApiError(ErrorType.UNKNOWN, 'La API no devolvió los datos del usuario.');
+    }
+    return user;
+  },
 
   getCurrentUser: async (): Promise<User> => authApi.getProfile(),
+
+  updateProfile: async (profile: ProfileUpdate): Promise<User> => {
+    const response = await apiClient.put<{ data?: User; user?: User }>('/auth/me', profile);
+    const user = response.data.data ?? response.data.user;
+    if (!user) {
+      throw new ApiError(ErrorType.UNKNOWN, 'La API no devolvió el perfil actualizado.');
+    }
+    return user;
+  },
 
   refreshToken: async (refreshToken: string): Promise<TokenResponse> => {
     const response = await apiClient.post<TokenResponse>('/auth/refresh', { refreshToken });
@@ -46,4 +60,4 @@ export const authApi = {
   },
 };
 
-export const { login, register, getCurrentUser, logout } = authApi;
+export const { login, register, getCurrentUser, updateProfile, logout } = authApi;

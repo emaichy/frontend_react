@@ -1,9 +1,15 @@
 import type { User } from '../types/user';
 
-type UserIdentity = Pick<User, 'nombre' | 'apellido' | 'email'> | null | undefined;
+type UserIdentity = Pick<
+  User,
+  'nombre' | 'apellido' | 'apellido_paterno' | 'apellido_materno' | 'email'
+> | null | undefined;
 
 export function getUserDisplayName(user: UserIdentity): string {
-  const fullName = [user?.nombre?.trim(), user?.apellido?.trim()]
+  const surname = user?.apellido_paterno !== undefined
+    ? [user.apellido_paterno, user.apellido_materno].filter(Boolean).join(' ')
+    : user?.apellido;
+  const fullName = [user?.nombre?.trim(), surname?.trim()]
     .filter(Boolean)
     .join(' ');
 

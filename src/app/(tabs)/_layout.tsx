@@ -3,14 +3,21 @@
  */
 
 import React from 'react';
-import { Tabs } from 'expo-router';
+import { Redirect, Tabs } from 'expo-router';
 import { View, Text, StyleSheet, ColorValue } from 'react-native';
+import { useSelector } from 'react-redux';
 import { useCart } from '../../context/CartContext';
 import { useTheme } from '../../context/ThemeContext';
+import type { RootState } from '../../store/store';
 
 export default function TabLayout() {
   const { studentCount } = useCart();
   const { colors } = useTheme();
+  const { token, user } = useSelector((state: RootState) => state.auth);
+
+  if (!token || !user) {
+    return <Redirect href="/login" />;
+  }
 
   return (
     <Tabs
