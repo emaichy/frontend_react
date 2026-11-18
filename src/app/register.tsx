@@ -12,8 +12,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  TouchableWithoutFeedback,
-  Keyboard,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../hooks/useAuth';
@@ -28,7 +26,8 @@ export default function RegisterScreen() {
 
   const [form, setForm] = useState({
     nombre: '',
-    apellido: '',
+    apellidoPaterno: '',
+    apellidoMaterno: '',
     matricula: '',
     email: '',
     password: '',
@@ -40,8 +39,8 @@ export default function RegisterScreen() {
   };
 
   const handleRegister = async () => {
-    if (!form.nombre || !form.apellido || !form.matricula || !form.email || !form.password) {
-      showError('Error', 'Todos los campos son obligatorios');
+    if (!form.nombre || !form.apellidoPaterno || !form.matricula || !form.email || !form.password) {
+      showError('Error', 'Nombre, apellido paterno, matrícula, correo y contraseña son obligatorios');
       return;
     }
 
@@ -55,9 +54,14 @@ export default function RegisterScreen() {
       return;
     }
 
+    const apellidoPaterno = form.apellidoPaterno.trim();
+    const apellidoMaterno = form.apellidoMaterno.trim();
+
     const result = await register({
       nombre: form.nombre.trim(),
-      apellido: form.apellido.trim(),
+      apellido: apellidoPaterno,
+      apellido_paterno: apellidoPaterno,
+      apellido_materno: apellidoMaterno || null,
       matricula: form.matricula.trim(),
       email: form.email.trim(),
       password: form.password,
@@ -72,11 +76,10 @@ export default function RegisterScreen() {
   };
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={[styles.container, { backgroundColor: colors.background }]}
-      >
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
         <ScrollView 
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
@@ -89,24 +92,28 @@ export default function RegisterScreen() {
           </View>
 
           <View style={styles.form}>
-            {/* Nombre y Apellido en la misma fila */}
+            {/* Nombre */}
+            <View style={styles.inputContainer}>
+              <Text style={[styles.label, { color: colors.text }]}>Nombre</Text>
+              <TextInput
+                style={[
+                  styles.input,
+                  { backgroundColor: colors.card, color: colors.text, borderColor: colors.border },
+                ]}
+                placeholder="Juan"
+                placeholderTextColor={colors.secondary}
+                value={form.nombre}
+                onChangeText={(v) => updateForm('nombre', v)}
+                autoCapitalize="words"
+                autoCorrect={false}
+                editable={!loading}
+              />
+            </View>
+
+            {/* Apellidos paterno y materno */}
             <View style={styles.row}>
               <View style={[styles.inputContainer, styles.half]}>
-                <Text style={[styles.label, { color: colors.text }]}>Nombre</Text>
-                <TextInput
-                  style={[
-                    styles.input,
-                    { backgroundColor: colors.card, color: colors.text, borderColor: colors.border },
-                  ]}
-                  placeholder="Juan"
-                  placeholderTextColor={colors.secondary}
-                  value={form.nombre}
-                  onChangeText={(v) => updateForm('nombre', v)}
-                />
-              </View>
-
-              <View style={[styles.inputContainer, styles.half]}>
-                <Text style={[styles.label, { color: colors.text }]}>Apellido</Text>
+                <Text style={[styles.label, { color: colors.text }]}>Apellido paterno *</Text>
                 <TextInput
                   style={[
                     styles.input,
@@ -114,8 +121,28 @@ export default function RegisterScreen() {
                   ]}
                   placeholder="Pérez"
                   placeholderTextColor={colors.secondary}
-                  value={form.apellido}
-                  onChangeText={(v) => updateForm('apellido', v)}
+                  value={form.apellidoPaterno}
+                  onChangeText={(v) => updateForm('apellidoPaterno', v)}
+                  autoCapitalize="words"
+                  autoCorrect={false}
+                  editable={!loading}
+                />
+              </View>
+
+              <View style={[styles.inputContainer, styles.half]}>
+                <Text style={[styles.label, { color: colors.text }]}>Apellido materno</Text>
+                <TextInput
+                  style={[
+                    styles.input,
+                    { backgroundColor: colors.card, color: colors.text, borderColor: colors.border },
+                  ]}
+                  placeholder="García"
+                  placeholderTextColor={colors.secondary}
+                  value={form.apellidoMaterno}
+                  onChangeText={(v) => updateForm('apellidoMaterno', v)}
+                  autoCapitalize="words"
+                  autoCorrect={false}
+                  editable={!loading}
                 />
               </View>
             </View>
@@ -133,6 +160,7 @@ export default function RegisterScreen() {
                 value={form.matricula}
                 onChangeText={(v) => updateForm('matricula', v)}
                 autoCapitalize="characters"
+                editable={!loading}
               />
             </View>
 
@@ -150,6 +178,9 @@ export default function RegisterScreen() {
                 onChangeText={(v) => updateForm('email', v)}
                 keyboardType="email-address"
                 autoCapitalize="none"
+                autoCorrect={false}
+                autoComplete="email"
+                editable={!loading}
               />
             </View>
 
@@ -166,6 +197,10 @@ export default function RegisterScreen() {
                 value={form.password}
                 onChangeText={(v) => updateForm('password', v)}
                 secureTextEntry
+                autoCapitalize="none"
+                autoCorrect={false}
+                autoComplete="new-password"
+                editable={!loading}
               />
             </View>
 
@@ -182,6 +217,10 @@ export default function RegisterScreen() {
                 value={form.confirmPassword}
                 onChangeText={(v) => updateForm('confirmPassword', v)}
                 secureTextEntry
+                autoCapitalize="none"
+                autoCorrect={false}
+                autoComplete="new-password"
+                editable={!loading}
               />
             </View>
 
@@ -207,8 +246,7 @@ export default function RegisterScreen() {
             </TouchableOpacity>
           </View>
         </ScrollView>
-      </KeyboardAvoidingView>
-    </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }
 

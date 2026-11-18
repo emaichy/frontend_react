@@ -1,13 +1,29 @@
 import React, { useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
+import { Redirect, useRouter } from 'expo-router';
+import { useSelector } from 'react-redux';
 import { useStudents } from '../hooks/useStudents';
 import StudentList from '../components/StudentList';
 import { ErrorMessage, Loading } from '../components';
 import BackToHomeButton from '../components/BackToHomeButton';
 import { useTheme } from '../context/ThemeContext';
+import type { RootState } from '../store/store';
+import { isTeacherRole } from '../utils/permissions';
 
 export default function StudentsScreen() {
+  const { token, user } = useSelector((state: RootState) => state.auth);
+
+  if (!token || !user) {
+    return <Redirect href="/login" />;
+  }
+  if (!isTeacherRole(user)) {
+    return <Redirect href="/(tabs)/profile" />;
+  }
+
+  return <StudentsScreenContent />;
+}
+
+function StudentsScreenContent() {
   const router = useRouter();
   const { colors } = useTheme();
   const { students, loading, error, refresh } = useStudents();

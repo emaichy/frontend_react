@@ -6,17 +6,24 @@ import {
     Switch
 } from "react-native";
 
-import { useRouter } from "expo-router";
+import { Redirect, useRouter } from "expo-router";
 import { useTheme } from "../context/ThemeContext";
+import { useSelector } from "react-redux";
+import type { RootState } from "../store/store";
 
 export default function SettingsScreen() {
 
     const router = useRouter();
     const { colors, theme, toggleTheme } = useTheme();
+    const { token, user } = useSelector((state: RootState) => state.auth);
 
     const handleLogout = () => {
         router.replace("/");
     };
+
+    if (!token || !user) {
+        return <Redirect href="/login" />;
+    }
 
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>

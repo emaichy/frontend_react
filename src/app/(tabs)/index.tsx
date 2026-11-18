@@ -4,10 +4,12 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { useRouter } from 'expo-router';
+import { Redirect, useRouter } from 'expo-router';
+import { useSelector } from 'react-redux';
 import { useTheme } from '../../context/ThemeContext';
-import { useAuth } from '../../hooks/useAuth';
 import { getUserDisplayName } from '../../utils/userDisplay';
+import type { RootState } from '../../store/store';
+import { isTeacherRole } from '../../utils/permissions';
 
 interface QuickAction {
   title: string;
@@ -20,7 +22,11 @@ interface QuickAction {
 export default function HomeScreen() {
   const router = useRouter();
   const { colors } = useTheme();
-  const { user } = useAuth();
+  const user = useSelector((state: RootState) => state.auth.user);
+
+  if (!isTeacherRole(user)) {
+    return <Redirect href={user ? '/(tabs)/profile' : '/login'} />;
+  }
 
   const quickActions: QuickAction[] = [
     {

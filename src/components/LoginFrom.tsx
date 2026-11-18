@@ -73,6 +73,7 @@ export default function LoginForm({
                 onChangeText={handleEmailChange}
                 autoCapitalize="none"
                 autoCorrect={false}
+                autoComplete="email"
                 keyboardType="email-address"
                 editable={!loading}
             />
@@ -95,6 +96,8 @@ export default function LoginForm({
                     onChangeText={handlePasswordChange}
                     secureTextEntry={!showPassword}
                     autoCapitalize="none"
+                    autoCorrect={false}
+                    autoComplete="current-password"
                     editable={!loading}
                 />
                 <Pressable

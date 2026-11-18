@@ -1,9 +1,26 @@
 import React from 'react';
 import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Redirect } from 'expo-router';
+import { useSelector } from 'react-redux';
 import { useCart } from '../../context/CartContext';
 import { useTheme } from '../../context/ThemeContext';
+import type { RootState } from '../../store/store';
+import { isTeacherRole } from '../../utils/permissions';
 
 export default function CartScreen() {
+  const { token, user } = useSelector((state: RootState) => state.auth);
+
+  if (!token || !user) {
+    return <Redirect href="/login" />;
+  }
+  if (!isTeacherRole(user)) {
+    return <Redirect href="/(tabs)/profile" />;
+  }
+
+  return <TeacherCartScreen />;
+}
+
+function TeacherCartScreen() {
   const { students, removeStudent, clearCart } = useCart();
   const { colors } = useTheme();
 

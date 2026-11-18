@@ -11,8 +11,25 @@ import { studentService } from '../../services/studentService';
 import { Loading, ErrorMessage } from '../../components';
 import BackToHomeButton from '../../components/BackToHomeButton';
 import { useTheme } from '../../context/ThemeContext';
+import { Redirect } from 'expo-router';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../../store/store';
+import { isTeacherRole } from '../../utils/permissions';
 
 export default function StudentDetailScreen() {
+  const { token, user } = useSelector((state: RootState) => state.auth);
+
+  if (!token || !user) {
+    return <Redirect href="/login" />;
+  }
+  if (!isTeacherRole(user)) {
+    return <Redirect href="/(tabs)/profile" />;
+  }
+
+  return <StudentDetailContent />;
+}
+
+function StudentDetailContent() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { colors } = useTheme();

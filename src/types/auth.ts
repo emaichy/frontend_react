@@ -10,6 +10,8 @@ export interface LoginCredentials {
 export interface RegisterData {
   nombre: string;
   apellido: string;
+  apellido_paterno?: string;
+  apellido_materno?: string | null;
   matricula: string;
   email: string;
   password: string;

@@ -9,11 +9,13 @@ import { useSelector } from 'react-redux';
 import { useCart } from '../../context/CartContext';
 import { useTheme } from '../../context/ThemeContext';
 import type { RootState } from '../../store/store';
+import { isTeacherRole } from '../../utils/permissions';
 
 export default function TabLayout() {
   const { studentCount } = useCart();
   const { colors } = useTheme();
   const { token, user } = useSelector((state: RootState) => state.auth);
+  const canManageStudents = isTeacherRole(user);
 
   if (!token || !user) {
     return <Redirect href="/login" />;
@@ -47,6 +49,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
+          href: canManageStudents ? undefined : null,
           title: 'Inicio',
           tabBarLabel: 'Inicio',
           tabBarIcon: ({ color, size }) => (
@@ -58,6 +61,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="students"
         options={{
+          href: canManageStudents ? undefined : null,
           title: 'Estudiantes',
           tabBarLabel: 'Estudiantes',
           tabBarIcon: ({ color, size }) => (
@@ -91,6 +95,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="cart"
         options={{
+          href: canManageStudents ? undefined : null,
           title: 'Carrito',
           tabBarLabel: 'Carrito',
           tabBarIcon: ({ color, size }) => (

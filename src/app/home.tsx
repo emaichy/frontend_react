@@ -5,7 +5,7 @@ import {
     TouchableOpacity,
     View
 } from "react-native";
-import { useRouter } from "expo-router";
+import { Redirect, useRouter } from "expo-router";
 import { useSelector } from "react-redux";
 
 import SideMenu from "../components/SideMenu";
@@ -24,9 +24,14 @@ export default function HomeScreen() {
 
     // Leer usuario dinámico desde Redux
     const user = useSelector((state: RootState) => state.auth.user);
+    const token = useSelector((state: RootState) => state.auth.token);
 
     // Nombre para mostrar en el saludo
     const firstName = getUserFirstName(user);
+
+    if (!token || !user) {
+        return <Redirect href="/login" />;
+    }
 
     const handleLogout = () => {
         setMenuOpen(false);

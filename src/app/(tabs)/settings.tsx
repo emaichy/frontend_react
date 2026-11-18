@@ -4,12 +4,24 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch } from 'react-native';
+import { Redirect } from 'expo-router';
+import { useSelector } from 'react-redux';
 import { useTheme } from '../../context/ThemeContext';
 import { useNotification } from '../../context/NotificationContext';
+import type { RootState } from '../../store/store';
+import { isTeacherRole } from '../../utils/permissions';
 
 export default function SettingsScreen() {
+  const { token, user } = useSelector((state: RootState) => state.auth);
   const { colors, theme, toggleTheme } = useTheme();
   const { showSuccess, showError, showWarning, showInfo } = useNotification();
+
+  if (!token || !user) {
+    return <Redirect href="/login" />;
+  }
+  if (!isTeacherRole(user)) {
+    return <Redirect href="/(tabs)/profile" />;
+  }
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>

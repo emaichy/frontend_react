@@ -6,8 +6,25 @@ import BackToHomeButton from '../../components/BackToHomeButton';
 import { studentService } from '../../services/studentService';
 import { StudentFormData } from '../../types/student';
 import { useTheme } from '../../context/ThemeContext';
+import { Redirect } from 'expo-router';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../../store/store';
+import { isTeacherRole } from '../../utils/permissions';
 
 export default function NewStudentScreen() {
+  const { token, user } = useSelector((state: RootState) => state.auth);
+
+  if (!token || !user) {
+    return <Redirect href="/login" />;
+  }
+  if (!isTeacherRole(user)) {
+    return <Redirect href="/(tabs)/profile" />;
+  }
+
+  return <NewStudentFormScreen />;
+}
+
+function NewStudentFormScreen() {
   const router = useRouter();
   const { colors } = useTheme();
 

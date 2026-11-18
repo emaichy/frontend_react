@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { useRouter } from "expo-router";
+import { Redirect, useRouter } from "expo-router";
 import { useDispatch, useSelector } from "react-redux";
 
 import MenuItem from "../components/MenuItem"; // Reutilizamos tu componente MenuItem
@@ -8,12 +8,21 @@ import { RootState, logout } from "../store/store";
 import { removeStorage } from "../utils/authStorage";
 import { getUserDisplayName } from "../utils/userDisplay";
 import { useTheme } from "../context/ThemeContext";
+import { isTeacherRole } from "../utils/permissions";
 
 export default function ProfileScreen() {
     const router = useRouter();
     const dispatch = useDispatch();
     const user = useSelector((state: RootState) => state.auth.user);
+    const token = useSelector((state: RootState) => state.auth.token);
     const { colors, theme, toggleTheme } = useTheme();
+
+    if (!token || !user) {
+        return <Redirect href="/login" />;
+    }
+    if (!isTeacherRole(user)) {
+        return <Redirect href="/(tabs)/profile" />;
+    }
 
     const displayName = getUserDisplayName(user);
 
